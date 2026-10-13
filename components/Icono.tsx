@@ -35,10 +35,10 @@ const trazos = {
       <path d="M3.5 9h17M8 5l2 4M13 5l2 4" />
     </>
   ),
-  cursos: (
+  anios: (
     <>
-      <path d="M3 9.5 12 5l9 4.5-9 4.5z" />
-      <path d="M7 11.5V16c1.5 1.3 3.2 2 5 2s3.5-.7 5-2v-4.5" />
+      <rect x="4" y="5.5" width="16" height="14.5" rx="2" />
+      <path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" />
     </>
   ),
   lista: (
@@ -53,6 +53,8 @@ const trazos = {
       stroke="none"
     />
   ),
+  pantallaCompleta: <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />,
+  salirPantallaCompleta: <path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" />,
   volver: <path d="M19 12H5m6-7-7 7 7 7" />,
   siguiente: <path d="M5 5v14l10-7zM19 5v14" />,
   reloj: (
