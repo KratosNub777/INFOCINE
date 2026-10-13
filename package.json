@@ -10,6 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "colores": "node scripts/colores-logo.mjs",
     "portadas-demo": "node scripts/generar-portadas-demo.mjs",
+    "agregar-editor": "node --no-warnings --env-file-if-exists=.env.local scripts/agregar-editor.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {
