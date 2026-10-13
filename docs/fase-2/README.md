@@ -1,39 +1,75 @@
-# Fase 2 · Panel para profesores, vistas y “me gusta”
+# Fase 2 · Panel de profesores, vistas y “me gusta”
 
-> Preparado, **no construido**. Esto explica cómo se haría.
+Con la fase 2 activada:
 
-## Idea general
+- Los profesores cargan y editan cortos desde **`/admin`**, sin tocar código: datos, equipo,
+  portadas (se recortan y achican solas), enlace de YouTube, borrador o publicado y destacado.
+- Cada corto cuenta **vistas** (cuando alguien mira más del 30 %) y **me gusta**.
+  Son contadores anónimos: no se guarda quién vio ni quién votó.
+- Los datos viven en **Supabase** (plan gratuito). Si Supabase no está configurado, Infocine
+  sigue funcionando como antes con `data/cortos.ts`.
 
-1. **Supabase** (plan gratuito) guarda el catálogo, las imágenes y los contadores.
-   El esquema listo para pegar está en [`esquema.sql`](./esquema.sql).
-2. **Panel `/admin`** dentro de Infocine:
-   - El profesor entra con su e-mail (Supabase Auth, enlace mágico, sin contraseñas).
-   - Solo pueden editar los e-mails cargados en la tabla `editores`.
-   - Formulario para crear/editar un corto: datos, subir portada vertical y horizontal
-     (Supabase Storage) y pegar el enlace de YouTube no listado.
-   - Botón “Publicar”: hasta entonces queda como borrador.
-3. **Cambio en el código**: las páginas leen los cortos a través de `lib/cortos.ts`.
-   En la fase 2, esa función consulta Supabase con `"use cache"` + `cacheTag("cortos")`
-   en lugar de importar `data/cortos.ts`, y al guardar en el panel se llama a
-   `revalidateTag("cortos")`. Las partes que corren en el navegador (buscador, tarjetas,
-   Mi lista) pasan a recibir la lista desde el servidor como dato, en vez de importarla.
-4. **Vistas y “me gusta”**:
-   - Vista: cuando el reproductor llega al 30 % del video, se llama a `sumar(id, 'vistas')`.
-   - Me gusta: botón en la ficha; el navegador recuerda (localStorage) que ya lo marcó.
-   - Son contadores anónimos: no se guarda quién vio ni quién votó (privacidad de menores).
+## Activarla, paso a paso (una sola vez)
 
-## Variables de entorno que se sumarían
+### 1. Crear el proyecto en Supabase
+1. Entrá a [supabase.com](https://supabase.com) → **New project**. Región sugerida: *South America (São Paulo)*.
+2. Abrí **SQL Editor → New query**, pegá todo el archivo
+   [`supabase/migrations/20261013180000_infocine.sql`](../../supabase/migrations/20261013180000_infocine.sql)
+   y tocá **Run**. Crea las tablas, los permisos y la carpeta de portadas.
 
+### 2. Configurar el ingreso por e-mail
+1. **Authentication → URL Configuration**
+   - *Site URL*: `https://tu-sitio.vercel.app`
+   - *Redirect URLs*: agregá `https://tu-sitio.vercel.app/admin/auth/confirmar`
+     (y `http://localhost:3000/admin/auth/confirmar` para probar en tu compu).
+2. **Authentication → Emails → SMTP Settings**: el correo que trae Supabase de fábrica solo
+   manda unos pocos e-mails por hora y únicamente a los miembros de tu equipo de Supabase.
+   Para que les llegue a los profesores, conectá un servicio de correo (por ejemplo
+   [Resend](https://resend.com) o Brevo, que tienen plan gratuito).
+3. Opcional: en **Authentication → Emails → Magic Link** podés poner el texto en español:
+   > **Asunto:** Tu enlace para entrar a Infocine
+   > **Cuerpo:** `<p>Hola, tocá el enlace para entrar al panel de Infocine:</p><p><a href="{{ .ConfirmationURL }}">Entrar al panel</a></p><p>Si no lo pediste, ignorá este correo.</p>`
+
+### 3. Conectar Infocine
+1. En Supabase: **Project Settings → API Keys**. Copiá la *Project URL*, la *Publishable key*
+   y la *Secret key*.
+2. En Vercel: **Settings → Environment Variables**, agregá:
+   - `NEXT_PUBLIC_SUPABASE_URL` = la Project URL
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = la Publishable key
+3. **Deployments → ⋯ → Redeploy**.
+
+> La **Secret key** no va en Vercel ni en GitHub: solo en el archivo `.env.local` de tu compu,
+> para los dos comandos de abajo.
+
+### 4. Dar permiso a los profesores
+En tu compu, copiá `.env.example` como `.env.local`, completá las tres claves de Supabase y corré:
+
+```bash
+npm run agregar-editor -- profe@ejemplo.com          # dar permiso
+npm run agregar-editor -- profe@ejemplo.com --quitar # quitar permiso
 ```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=   # solo en el servidor, nunca en el navegador
+
+### 5. (Opcional) Pasar los cortos de `data/cortos.ts` a Supabase
+```bash
+npm run migrar-a-supabase                  # solo los cortos reales
+npm run migrar-a-supabase -- --incluir-demo  # también los DEMO
 ```
+Sube también las portadas de `public/portadas/`. Necesita Node 22.18 o más nuevo.
 
-## Orden sugerido
+## Uso diario (para profesores)
+1. Entrá a `https://tu-sitio.vercel.app/admin` y escribí tu e-mail.
+2. Abrí el enlace que te llega por correo (vale una sola vez).
+3. **Nuevo corto** → completá los datos, subí la portada vertical y la horizontal y pegá el
+   enlace de YouTube no listado.
+4. Marcá **Publicado** cuando esté listo. Sin marcar, queda como borrador (solo lo ven los profesores).
+5. **Guardar**: aparece en Infocine al instante. En la lista ves las vistas y los “me gusta” de cada uno.
 
-1. Crear el proyecto en supabase.com y correr `esquema.sql`.
-2. Migrar los cortos de `data/cortos.ts` a la tabla (script de una sola vez).
-3. Cambiar `lib/cortos.ts` para leer de Supabase.
-4. Construir `/admin` (login + formulario) protegido en `proxy.ts`.
-5. Agregar contadores al reproductor y a la ficha.
+## Cómo está hecho (para quien mantenga el código)
+- `supabase/migrations/…_infocine.sql`: tablas `cortos`, `editores` y `estadisticas`, políticas RLS
+  (todos leen lo publicado, solo los editores escriben), funciones `registrar_vista` y
+  `cambiar_me_gusta`, y el bucket público `portadas`.
+- `lib/datos.ts`: `obtenerCortos()` lee Supabase con `"use cache"` + `cacheTag("cortos")`;
+  al guardar en el panel se llama a `updateTag("cortos")` y el sitio se actualiza.
+- `proxy.ts` + `lib/supabase/proxy.ts`: renuevan la sesión en `/admin` y piden ingreso.
+- `app/admin/`: páginas y acciones del panel. `components/admin/`: formularios.
+- `app/api/estadisticas`: vistas y “me gusta” (sin cuentas, sin datos personales).
