@@ -184,3 +184,13 @@ export function buscar(consulta: string): Corto[] {
       return ta - tb || b.agregado.localeCompare(a.agregado);
     });
 }
+
+/** Extrae el ID de video de cualquier enlace de YouTube. */
+export function idYoutube(url: string | null): string | null {
+  if (!url) return null;
+  const m = url.match(
+    /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/,
+  );
+  if (m) return m[1];
+  return /^[\w-]{11}$/.test(url) ? url : null;
+}
