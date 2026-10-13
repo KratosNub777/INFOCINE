@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { sitio } from "@/config/sitio";
-import { cursoYSeccion, formatoDuracion } from "@/lib/cortos";
+import { formatoDuracion } from "@/lib/cortos";
 import { idsDeCortos, obtenerCatalogo } from "@/lib/datos";
 import { FichaContenido } from "@/components/FichaContenido";
 
@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: PageProps<"/corto/[id]">): Pr
   const { id } = await params;
   const corto = (await obtenerCatalogo()).porId(id);
   if (!corto) return { title: "Corto no encontrado", robots: { index: false } };
-  const descripcion = `${corto.sinopsis} · ${cursoYSeccion(corto)}, ${corto.anio}, ${formatoDuracion(corto.duracion)}.`;
+  const descripcion = `${corto.sinopsis} · ${corto.anio}, ${formatoDuracion(corto.duracion)}.`;
   return {
     title: corto.titulo,
     description: descripcion,

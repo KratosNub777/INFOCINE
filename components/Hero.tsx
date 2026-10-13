@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { sitio, textos } from "@/config/sitio";
-import { cursoYSeccion, formatoDuracion, nombreGenero, type Corto } from "@/lib/cortos";
+import { formatoDuracion, nombreGenero, type Corto } from "@/lib/cortos";
 import { useInterfaz } from "./Proveedores";
 import { Portada } from "./Portada";
 import { Icono } from "./Icono";
@@ -125,8 +125,6 @@ export function Hero({ cortos }: { cortos: Corto[] }) {
             </h2>
             <p className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm font-medium text-texto/90 md:text-base">
               <span>{corto.anio}</span>
-              <Separador />
-              <span>{cursoYSeccion(corto)}</span>
               <Separador />
               <span>{formatoDuracion(corto.duracion)}</span>
               <Separador />
