@@ -45,8 +45,6 @@ for (const c of elegidos) {
     sinopsis: c.sinopsis,
     anio: c.anio,
     duracion: c.duracion,
-    curso: c.curso,
-    seccion: c.seccion,
     generos: c.generos,
     materia: c.materia,
     equipo: c.equipo,
