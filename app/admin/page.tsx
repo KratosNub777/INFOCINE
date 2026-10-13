@@ -12,8 +12,6 @@ import { sesionActual } from "@/lib/supabase/servidor";
 type FilaLista = {
   id: string;
   titulo: string;
-  curso: string;
-  seccion: string;
   anio: number;
   publicado: boolean;
   destacado: boolean;
@@ -38,7 +36,7 @@ async function ListaCortos({ searchParams }: Pick<PageProps<"/admin">, "searchPa
   const parametros = await searchParams;
   const { data, error } = await supabase
     .from("cortos")
-    .select("id, titulo, curso, seccion, anio, publicado, destacado, imagen_horizontal, estadisticas(vistas, me_gusta)")
+    .select("id, titulo, anio, publicado, destacado, imagen_horizontal, estadisticas(vistas, me_gusta)")
     .order("agregado", { ascending: false });
   const cortos = (data ?? []) as FilaLista[];
   const totales = cortos.reduce(
@@ -98,9 +96,7 @@ async function ListaCortos({ searchParams }: Pick<PageProps<"/admin">, "searchPa
                     {c.titulo}
                   </Link>
                   <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-texto-suave">
-                    <span>
-                      {c.curso} {c.seccion} · {c.anio}
-                    </span>
+                    <span>{c.anio}</span>
                     <span
                       className={`rounded px-1.5 py-0.5 font-bold ${c.publicado ? "bg-azul text-texto" : "bg-fondo text-texto-suave ring-1 ring-borde"}`}
                     >

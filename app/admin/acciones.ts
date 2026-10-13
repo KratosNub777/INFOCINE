@@ -74,7 +74,6 @@ export async function guardarCorto(_previo: EstadoGuardado, datos: FormData): Pr
   if (!Number.isInteger(anio) || anio < 1990 || anio > 2100) errores.push("El año no es válido.");
   if (!Number.isInteger(duracion) || duracion < 1 || duracion > 300)
     errores.push("La duración va en minutos (1 a 300).");
-  if (!texto(datos, "curso") || !texto(datos, "seccion")) errores.push("Completá curso y sección.");
   if (!texto(datos, "portada") || !texto(datos, "imagenHorizontal")) errores.push("Subí las dos imágenes.");
   if (youtube && !video) errores.push("El enlace de YouTube no es válido.");
   if (errores.length) return { error: errores.join(" ") };
@@ -85,8 +84,6 @@ export async function guardarCorto(_previo: EstadoGuardado, datos: FormData): Pr
     sinopsis: texto(datos, "sinopsis"),
     anio,
     duracion,
-    curso: texto(datos, "curso"),
-    seccion: texto(datos, "seccion"),
     generos: datos
       .getAll("generos")
       .map(String)
