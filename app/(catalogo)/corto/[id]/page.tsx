@@ -12,7 +12,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/corto/[id]">): Promise<Metadata> {
   const { id } = await params;
   const corto = (await obtenerCatalogo()).porId(id);
-  if (!corto) return { title: "Corto no encontrado" };
+  if (!corto) return { title: "Corto no encontrado", robots: { index: false } };
   const descripcion = `${corto.sinopsis} · ${cursoYSeccion(corto)}, ${corto.anio}, ${formatoDuracion(corto.duracion)}.`;
   return {
     title: corto.titulo,
