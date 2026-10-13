@@ -8,6 +8,7 @@ import { useSyncExternalStore } from "react";
 
 const CLAVE_LISTA = "infocine:mi-lista";
 const CLAVE_PROGRESO = "infocine:progreso";
+const CLAVE_ME_GUSTA = "infocine:me-gusta";
 const EVENTO = "infocine:almacen";
 
 export type Progreso = { segundos: number; duracion: number; actualizado: number };
@@ -76,6 +77,22 @@ export function useMiLista() {
     alternar: (id: string) => {
       const actual = leer<string[]>(CLAVE_LISTA, []);
       escribir(CLAVE_LISTA, actual.includes(id) ? actual.filter((x) => x !== id) : [id, ...actual]);
+    },
+  };
+}
+
+/** Cortos a los que este navegador ya les dio “me gusta”. */
+export function useMeGusta() {
+  const ids = useSyncExternalStore(
+    suscribir,
+    () => instantanea(CLAVE_ME_GUSTA, LISTA_VACIA),
+    () => LISTA_VACIA,
+  );
+  return {
+    tiene: (id: string) => ids.includes(id),
+    marcar: (id: string, si: boolean) => {
+      const actual = leer<string[]>(CLAVE_ME_GUSTA, []).filter((x) => x !== id);
+      escribir(CLAVE_ME_GUSTA, si ? [id, ...actual] : actual);
     },
   };
 }
