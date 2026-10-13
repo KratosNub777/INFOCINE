@@ -131,3 +131,56 @@ export function siguienteCorto(corto: Corto): Corto | undefined {
   const i = lista.findIndex((c) => c.id === corto.id);
   return lista[(i + 1) % lista.length];
 }
+
+/** Saca acentos y pasa a minúsculas: “Animación” → “animacion”. */
+export function normalizar(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+}
+
+/** Variantes de escritura de los cursos: “3ero” = “3ro” = “3°” = “3”. */
+function normalizarCurso(texto: string): string {
+  return normalizar(texto).replace(/(\d+)\s*(ero|ro|er|do|to|era|ra|da|ta|°|º)\b/g, "$1");
+}
+
+function textoBuscable(c: Corto): string {
+  const partes = [
+    c.titulo,
+    cursoYSeccion(c),
+    `${c.curso} curso`,
+    ...c.generos.map((g) => generos[g]),
+    String(c.anio),
+    c.profesorGuia,
+    c.materia,
+    ...Object.values(c.equipo).flat(),
+  ];
+  return normalizarCurso(partes.join(" | "));
+}
+
+const indice = cortos.map((c) => ({ c, texto: textoBuscable(c) }));
+
+/** Búsqueda en vivo por título, curso, género o integrante. */
+export function buscar(consulta: string): Corto[] {
+  const terminos = normalizarCurso(consulta).split(/\s+/).filter(Boolean);
+  if (!terminos.length) return [];
+  // Los números (“3”, “2025”) tienen que coincidir enteros, no dentro de otro número.
+  // “3ero 1era” (solo números) es curso + sección: tienen que ir juntos y en ese orden.
+  const soloNumeros = terminos.length > 1 && terminos.every((t) => /^\d+$/.test(t));
+  const pruebas = soloNumeros
+    ? [(s: string) => new RegExp(`\\b${terminos.join(" ")}\\b`).test(s)]
+    : terminos.map((t) =>
+        /^\d+$/.test(t) ? (s: string) => new RegExp(`\\b${t}\\b`).test(s) : (s: string) => s.includes(t),
+      );
+  return indice
+    .filter(({ texto }) => pruebas.every((p) => p(texto)))
+    .map(({ c }) => c)
+    .sort((a, b) => {
+      const q = normalizar(consulta);
+      const ta = normalizar(a.titulo).includes(q) ? 0 : 1;
+      const tb = normalizar(b.titulo).includes(q) ? 0 : 1;
+      return ta - tb || b.agregado.localeCompare(a.agregado);
+    });
+}
