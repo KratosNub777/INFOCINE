@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
         ]
       : [],
   },
+  // La página “Por curso” pasó a ser “Por año”: los enlaces viejos siguen funcionando.
+  async redirects() {
+    return [{ source: "/por-curso", destination: "/por-anio", permanent: true }];
+  },
   turbopack: {
     rules: {
       "*.css": {
