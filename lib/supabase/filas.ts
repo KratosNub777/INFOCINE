@@ -52,6 +52,8 @@ export function filaACorto(f: FilaCorto): Corto {
     destacado: f.destacado,
     premios: lista(f.premios),
     agregado: f.agregado,
+    // Los cortos de ejemplo cargados en Supabase conservan la etiqueta DEMO.
+    ...(f.id.startsWith("demo-") ? { demo: true } : {}),
   };
 }
 
