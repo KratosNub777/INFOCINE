@@ -77,8 +77,6 @@ export function FormularioCorto({ corto, hoy }: { corto?: Inicial; hoy: string }
             tipo="number"
             valor={corto?.duracion ? String(corto.duracion) : ""}
           />
-          <Campo nombre="curso" texto="Curso *" valor={corto?.curso} ejemplo="3ero" />
-          <Campo nombre="seccion" texto="Sección *" valor={corto?.seccion} ejemplo="1era" />
           <div className="sm:col-span-2">
             <Campo nombre="materia" texto="Materia o proyecto" valor={corto?.materia} ejemplo="Lenguaje Audiovisual" />
           </div>

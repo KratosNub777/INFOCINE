@@ -3,26 +3,83 @@
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { textos } from "@/config/sitio";
 import { guardarProgreso, useProgreso } from "@/lib/almacen";
 import { registrarVista } from "@/lib/estadisticas";
-import { cursoYSeccion, formatoDuracion, idYoutube, type Corto } from "@/lib/cortos";
+import { formatoDuracion, idYoutube, type Corto } from "@/lib/cortos";
 import { Portada } from "./Portada";
 import { Icono } from "./Icono";
 import { EtiquetaDemo } from "./Etiquetas";
 
+const SEGUNDOS_BARRA = 3500;
+
+/** El navegador de este equipo permite pasar un elemento a pantalla completa (iPhone no). */
+const sinSuscripcion = () => () => {};
+const fullscreenDisponible = () => document.fullscreenEnabled;
+const sinDatosDelServidor = () => null;
+
+/**
+ * Reproductor a pantalla completa, como en Netflix: el video ocupa toda la ventana,
+ * la barra de arriba (volver, título, siguiente, pantalla completa) se oculta sola
+ * y vuelve al mover el mouse, tocar o acercarse al borde superior.
+ */
 export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Corto }) {
   const router = useRouter();
+  const contenedor = useRef<HTMLDivElement>(null);
+  const temporizador = useRef(0);
   const [terminado, setTerminado] = useState(false);
+  const [barra, setBarra] = useState(true);
+  const [pantallaCompleta, setPantallaCompleta] = useState(false);
   const video = idYoutube(corto.youtube);
+  // null mientras se hidrata. Si se puede, la pantalla completa la maneja Infocine
+  // (así la barra y el “siguiente” siguen disponibles) y se oculta el botón de YouTube.
+  const fullscreenPropio = useSyncExternalStore(sinSuscripcion, fullscreenDisponible, sinDatosDelServidor);
+
+  const mostrarBarra = useCallback(() => {
+    setBarra(true);
+    window.clearTimeout(temporizador.current);
+    temporizador.current = window.setTimeout(() => setBarra(false), SEGUNDOS_BARRA);
+  }, []);
 
   function volver() {
     if (window.history.length > 1) router.back();
     else router.push(`/corto/${corto.id}`);
   }
 
-  // Escape o “Atrás” del control remoto vuelven a la página anterior.
+  const alternarPantallaCompleta = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+    else void contenedor.current?.requestFullscreen?.({ navigationUI: "hide" })?.catch(() => {});
+  }, []);
+
+  // La barra se esconde sola unos segundos después de entrar.
+  useEffect(() => {
+    temporizador.current = window.setTimeout(() => setBarra(false), SEGUNDOS_BARRA);
+    return () => window.clearTimeout(temporizador.current);
+  }, []);
+
+  // Intenta entrar en pantalla completa al abrir (el navegador solo lo deja si el
+  // clic en “Ver ahora” fue reciente; si no, queda la ventana completa y el botón).
+  useEffect(() => {
+    const el = contenedor.current;
+    const alCambiar = () => setPantallaCompleta(document.fullscreenElement === el);
+    document.addEventListener("fullscreenchange", alCambiar);
+    const orientacion = screen.orientation as (ScreenOrientation & { lock?: (o: string) => Promise<void> }) | undefined;
+    Promise.resolve(el?.requestFullscreen?.({ navigationUI: "hide" }))
+      .then(() => {
+        if (document.fullscreenElement) return orientacion?.lock?.("landscape"); // celulares: acostar el video
+      })
+      .catch(() => {});
+    return () => {
+      document.removeEventListener("fullscreenchange", alCambiar);
+      if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+      try {
+        orientacion?.unlock?.();
+      } catch {}
+    };
+  }, []);
+
+  // Escape o “Atrás” del control remoto vuelven a la página anterior; F alterna la pantalla completa.
   useEffect(() => {
     function alPresionar(e: KeyboardEvent) {
       const t = e.target as HTMLElement | null;
@@ -31,98 +88,129 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
         e.preventDefault();
         if (window.history.length > 1) router.back();
         else router.push(`/corto/${corto.id}`);
+      } else if ((e.key === "f" || e.key === "F") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        alternarPantallaCompleta();
       }
     }
     document.addEventListener("keydown", alPresionar);
     return () => document.removeEventListener("keydown", alPresionar);
-  }, [router, corto.id]);
+  }, [router, corto.id, alternarPantallaCompleta]);
 
   return (
-    <div className="flex min-h-svh flex-col bg-black">
-      <div className="flex items-center gap-3 px-[var(--gutter)] py-3">
+    <div
+      ref={contenedor}
+      className="fixed inset-0 z-50 overflow-hidden bg-black"
+      onPointerMove={mostrarBarra}
+      onPointerDown={mostrarBarra}
+      onKeyDown={mostrarBarra}
+    >
+      <div className="absolute inset-0 grid place-items-center">
+        <div className="relative aspect-video w-[min(100vw,calc(100svh*16/9))] bg-superficie">
+          {video ? (
+            fullscreenPropio !== null && (
+              <VideoYoutube
+                corto={corto}
+                video={video}
+                botonYoutube={!fullscreenPropio}
+                alTerminar={() => setTerminado(true)}
+              />
+            )
+          ) : (
+            <ReproductorDemo corto={corto} alTerminar={() => setTerminado(true)} />
+          )}
+          <AnimatePresence>
+            {terminado && siguiente && (
+              <motion.div
+                className="absolute inset-0 z-10 grid place-items-center bg-black/80 p-6 text-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <div>
+                  <p className="text-sm text-texto-suave">A continuación</p>
+                  <p className="titular mt-1 text-titulo text-texto">{siguiente.titulo}</p>
+                  <div className="mt-5 flex flex-wrap justify-center gap-3">
+                    <Link
+                      href={`/ver/${siguiente.id}`}
+                      data-nav
+                      autoFocus
+                      className="inline-flex min-h-12 items-center gap-2 rounded-md bg-rojo px-6 font-bold text-white hover:bg-rojo-hover"
+                    >
+                      <Icono nombre="play" className="size-5" /> {textos.siguiente}
+                    </Link>
+                    <button
+                      type="button"
+                      data-nav
+                      onClick={() => setTerminado(false)}
+                      className="inline-flex min-h-12 items-center rounded-md bg-texto/20 px-6 font-bold text-texto hover:bg-texto/30"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        {corto.demo && (
+          <p className="absolute inset-x-0 bottom-6 hidden px-6 text-center text-sm text-texto-suave portrait:max-sm:block">
+            {textos.demoAviso}
+          </p>
+        )}
+      </div>
+
+      {/* El iframe de YouTube se queda con los eventos del mouse: esta franja los recibe y trae la barra. */}
+      <div aria-hidden="true" className="absolute inset-x-0 top-0 z-20 h-20" onPointerEnter={mostrarBarra} />
+
+      <div
+        className={`absolute inset-x-0 top-0 z-30 flex items-center gap-2 bg-gradient-to-b from-black/85 via-black/40 to-transparent px-[var(--gutter)] pt-3 pb-10 transition-opacity duration-300 sm:gap-3 ${
+          barra
+            ? "opacity-100"
+            : "pointer-events-none opacity-0 focus-within:pointer-events-auto focus-within:opacity-100"
+        }`}
+      >
         <button
           type="button"
           data-nav
           onClick={volver}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full px-3 font-semibold text-texto transition-colors hover:bg-white/10"
+          className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3 font-semibold text-texto transition-colors hover:bg-white/10"
         >
           <Icono nombre="volver" className="size-6" />
-          {textos.volver}
+          <span className="max-sm:sr-only">{textos.volver}</span>
         </button>
         <div className="min-w-0">
           <h1 className="titular truncate text-subtitulo text-texto">{corto.titulo}</h1>
           <p className="truncate text-xs text-texto-suave">
-            {cursoYSeccion(corto)} · {corto.anio} · {formatoDuracion(corto.duracion)}
+            {corto.anio} · {formatoDuracion(corto.duracion)}
           </p>
         </div>
-        {corto.demo && <EtiquetaDemo className="ml-auto shrink-0" />}
-      </div>
-
-      <div className="grid flex-1 place-items-center px-[var(--gutter)]">
-        <div className="w-full max-w-[calc((100svh-11rem)*16/9)]">
-          <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-superficie shadow-2xl shadow-black ring-1 ring-white/10">
-            {video ? (
-              <VideoYoutube corto={corto} video={video} alTerminar={() => setTerminado(true)} />
-            ) : (
-              <ReproductorDemo corto={corto} alTerminar={() => setTerminado(true)} />
-            )}
-            <AnimatePresence>
-              {terminado && siguiente && (
-                <motion.div
-                  className="absolute inset-0 z-10 grid place-items-center bg-black/80 p-6 text-center"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <div>
-                    <p className="text-sm text-texto-suave">A continuación</p>
-                    <p className="titular mt-1 text-titulo text-texto">{siguiente.titulo}</p>
-                    <div className="mt-5 flex flex-wrap justify-center gap-3">
-                      <Link
-                        href={`/ver/${siguiente.id}`}
-                        data-nav
-                        autoFocus
-                        className="inline-flex min-h-12 items-center gap-2 rounded-md bg-rojo px-6 font-bold text-white hover:bg-rojo-hover"
-                      >
-                        <Icono nombre="play" className="size-5" /> {textos.siguiente}
-                      </Link>
-                      <button
-                        type="button"
-                        data-nav
-                        onClick={() => setTerminado(false)}
-                        className="inline-flex min-h-12 items-center rounded-md bg-texto/20 px-6 font-bold text-texto hover:bg-texto/30"
-                      >
-                        Cerrar
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          {corto.demo && <p className="mt-3 text-center text-sm text-texto-suave sm:hidden">{textos.demoAviso}</p>}
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+          {corto.demo && <EtiquetaDemo className="mr-1" />}
+          {siguiente && (
+            <Link
+              href={`/ver/${siguiente.id}`}
+              data-nav
+              title={`${textos.siguiente}: ${siguiente.titulo}`}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full px-3 font-semibold text-texto transition-colors hover:bg-white/10"
+            >
+              <Icono nombre="siguiente" className="size-5" />
+              <span className="max-md:sr-only">{textos.siguiente}</span>
+            </Link>
+          )}
+          {fullscreenPropio && (
+            <button
+              type="button"
+              data-nav
+              onClick={alternarPantallaCompleta}
+              aria-label={pantallaCompleta ? "Salir de pantalla completa" : "Pantalla completa"}
+              title={pantallaCompleta ? "Salir de pantalla completa (F)" : "Pantalla completa (F)"}
+              className="inline-flex size-11 items-center justify-center rounded-full text-texto transition-colors hover:bg-white/10"
+            >
+              <Icono nombre={pantallaCompleta ? "salirPantallaCompleta" : "pantallaCompleta"} className="size-6" />
+            </button>
+          )}
         </div>
       </div>
-
-      {siguiente && (
-        <div className="flex justify-end px-[var(--gutter)] py-4">
-          <Link
-            href={`/ver/${siguiente.id}`}
-            data-nav
-            className="group inline-flex items-center gap-3 rounded-lg bg-superficie/80 p-2 pr-4 ring-1 ring-white/10 transition-colors hover:bg-superficie-alta"
-          >
-            <span className="relative block aspect-video w-24 overflow-hidden rounded-md bg-superficie-alta sm:w-32">
-              <Portada src={siguiente.imagenHorizontal} alt="" sizes="8rem" />
-            </span>
-            <span className="text-left">
-              <span className="flex items-center gap-1 text-xs font-semibold text-texto-suave">
-                <Icono nombre="siguiente" className="size-3.5" /> {textos.siguiente}
-              </span>
-              <span className="titular block text-lg text-texto">{siguiente.titulo}</span>
-            </span>
-          </Link>
-        </div>
-      )}
     </div>
   );
 }
@@ -168,7 +256,18 @@ function cargarApiYoutube(): Promise<ApiYT> {
   });
 }
 
-function VideoYoutube({ corto, video, alTerminar }: { corto: Corto; video: string; alTerminar: () => void }) {
+function VideoYoutube({
+  corto,
+  video,
+  botonYoutube,
+  alTerminar,
+}: {
+  corto: Corto;
+  video: string;
+  /** Muestra el botón de pantalla completa de YouTube (solo si Infocine no puede manejarla). */
+  botonYoutube: boolean;
+  alTerminar: () => void;
+}) {
   const marco = useRef<HTMLIFrameElement>(null);
   const progresos = useProgreso();
   const guardado = useRef(0);
@@ -228,6 +327,7 @@ function VideoYoutube({ corto, video, alTerminar }: { corto: Corto; video: strin
     hl: "es",
     enablejsapi: "1",
     autoplay: "1",
+    fs: botonYoutube ? "1" : "0",
   });
 
   return (
@@ -293,7 +393,7 @@ function ReproductorDemo({ corto, alTerminar }: { corto: Corto; alTerminar: () =
     <div className="absolute inset-0">
       <Portada src={corto.imagenHorizontal} alt={`Imagen de ${corto.titulo}`} sizes="100vw" prioridad />
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/40" />
-      <p className="absolute inset-x-0 top-0 hidden bg-black/60 px-4 py-2 text-center text-sm text-texto sm:block">
+      <p className="absolute inset-x-0 top-24 hidden bg-black/60 px-4 py-2 text-center text-sm text-texto sm:block">
         Reproductor de demostración: {textos.demoAviso}
       </p>
       <button

@@ -15,8 +15,6 @@ create table public.cortos (
   sinopsis          text not null check (length(sinopsis) <= 1200),
   anio              int  not null check (anio between 1990 and 2100),
   duracion          int  not null check (duracion between 1 and 300), -- minutos
-  curso             text not null,                 -- "3ero"
-  seccion           text not null,                 -- "1era"
   generos           text[] not null default '{}',
   materia           text not null default '',
   equipo            jsonb not null default '{}',   -- { direccion: [], guion: [], elenco: [], ... }

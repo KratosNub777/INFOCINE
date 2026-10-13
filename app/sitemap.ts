@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: `${sitio.url}/`, lastModified: ultima, changeFrequency: "weekly", priority: 1 },
     { url: `${sitio.url}/cortometrajes`, lastModified: ultima, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${sitio.url}/por-curso`, lastModified: ultima, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${sitio.url}/por-anio`, lastModified: ultima, changeFrequency: "weekly", priority: 0.6 },
     ...cortos.map((c) => ({
       url: `${sitio.url}/corto/${c.id}`,
       lastModified: c.agregado,

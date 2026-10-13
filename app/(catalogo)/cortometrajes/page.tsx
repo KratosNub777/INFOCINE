@@ -7,14 +7,14 @@ import { sitio } from "@/config/sitio";
 
 export const metadata: Metadata = {
   title: "Cortometrajes",
-  description: `Todos los cortometrajes del ${sitio.colegio}, por género, curso y año.`,
+  description: `Todos los cortometrajes del ${sitio.colegio}, por género y año.`,
   alternates: { canonical: "/cortometrajes" },
 };
 
 export default function PaginaCortometrajes() {
   return (
     <>
-      <Encabezado titulo="Cortometrajes">Filtrá por género, curso o año.</Encabezado>
+      <Encabezado titulo="Cortometrajes">Filtrá por género o año.</Encabezado>
       <div className="px-[var(--gutter)] pt-6">
         <Suspense fallback={<EsqueletoGrilla />}>
           <Catalogo />

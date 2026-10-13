@@ -3,21 +3,19 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useSearchParams } from "next/navigation";
 import { generos, textos, type Genero } from "@/config/sitio";
-import { cursoYSeccion } from "@/lib/cortos";
 import { useMiLista } from "@/lib/almacen";
 import { Tarjeta } from "./Tarjeta";
 import { useCatalogo } from "./ContextoCatalogo";
 
-type Filtros = { genero: string; curso: string; anio: string };
+type Filtros = { genero: string; anio: string };
 
-/** Grilla de todos los cortos con filtros por género, curso y año. */
+/** Grilla de todos los cortos con filtros por género y año. */
 export function Catalogo() {
   // Los filtros viven en la URL (?genero=drama&anio=2025): se pueden compartir.
   const catalogo = useCatalogo();
   const params = useSearchParams();
   const filtros: Filtros = {
     genero: params.get("genero") ?? "",
-    curso: params.get("curso") ?? "",
     anio: params.get("anio") ?? "",
   };
 
@@ -32,7 +30,6 @@ export function Catalogo() {
   const lista = catalogo.recientes.filter(
     (c) =>
       (!filtros.genero || c.generos.includes(filtros.genero as Genero)) &&
-      (!filtros.curso || cursoYSeccion(c) === filtros.curso) &&
       (!filtros.anio || String(c.anio) === filtros.anio),
   );
 
@@ -44,12 +41,6 @@ export function Catalogo() {
           opciones={catalogo.generosDisponibles().map((g) => ({ valor: g, etiqueta: generos[g] }))}
           actual={filtros.genero}
           alCambiar={(v) => cambiar("genero", v)}
-        />
-        <GrupoFiltro
-          titulo="Curso"
-          opciones={catalogo.cursosDisponibles().map((c) => ({ valor: c, etiqueta: c }))}
-          actual={filtros.curso}
-          alCambiar={(v) => cambiar("curso", v)}
         />
         <GrupoFiltro
           titulo="Año"

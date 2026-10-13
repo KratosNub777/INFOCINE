@@ -29,10 +29,6 @@ export type Corto = {
   anio: number;
   /** Duración en minutos. */
   duracion: number;
-  /** Curso, por ejemplo "1ero", "2do" o "3ero". */
-  curso: string;
-  /** Sección, por ejemplo "1era", "2da" o "3era". */
-  seccion: string;
   generos: Genero[];
   /** Materia o proyecto en el que se hizo el corto. */
   materia: string;
@@ -71,8 +67,6 @@ export const cortos: Corto[] = [
       "[DEMO] Es el último día antes de las vacaciones de invierno y un profesor de taller decide que su clase no termina hasta que cada estudiante arregle algo que creía roto. Un drama sobre despedidas, herramientas y segundas oportunidades.",
     anio: 2026,
     duracion: 12,
-    curso: "3ero",
-    seccion: "1era",
     generos: ["drama"],
     materia: "Proyecto de Lenguaje Audiovisual (DEMO)",
     equipo: equipoDemo(1),
@@ -92,8 +86,6 @@ export const cortos: Corto[] = [
       "[DEMO] Una pieza diminuta se escapa de una máquina y recorre el colegio buscando su lugar. Animación cuadro por cuadro hecha con recortes de papel y piezas del taller de mecánica.",
     anio: 2026,
     duracion: 6,
-    curso: "1ero",
-    seccion: "3era",
     generos: ["animacion", "experimental"],
     materia: "Taller de Animación (DEMO)",
     equipo: equipoDemo(2),
@@ -113,8 +105,6 @@ export const cortos: Corto[] = [
       "[DEMO] En el laboratorio de electricidad, dos estudiantes descubren que un viejo transformador les deja hablar con quienes ocupaban su pupitre treinta años atrás. Ciencia ficción con olor a soldadura.",
     anio: 2026,
     duracion: 15,
-    curso: "3ero",
-    seccion: "2da",
     generos: ["ciencia-ficcion", "drama"],
     materia: "Proyecto Integrador de Electricidad (DEMO)",
     equipo: equipoDemo(3),
@@ -134,8 +124,6 @@ export const cortos: Corto[] = [
       "[DEMO] Un recorrido de madrugada por un mercado de Asunción contado por quienes lo abren todos los días. Documental de observación grabado con celulares.",
     anio: 2025,
     duracion: 18,
-    curso: "2do",
-    seccion: "1era",
     generos: ["documental"],
     materia: "Ciencias Sociales · Proyecto Comunidad (DEMO)",
     equipo: equipoDemo(4),
@@ -155,8 +143,6 @@ export const cortos: Corto[] = [
       "[DEMO] Nadie se queda en el colegio después de las diez. Nadie, salvo el sereno… y algo que hace funcionar los tornos cuando todos se fueron. Terror de pasillos y luces de emergencia.",
     anio: 2025,
     duracion: 10,
-    curso: "3ero",
-    seccion: "2da",
     generos: ["terror", "suspenso"],
     materia: "Lenguaje Audiovisual (DEMO)",
     equipo: equipoDemo(5),
@@ -176,8 +162,6 @@ export const cortos: Corto[] = [
       "[DEMO] Un termo, una guampa y un recreo demasiado corto. Cuatro amigos intentan resolver el misterio de quién se tomó el último tereré antes de que toque el timbre. Comedia.",
     anio: 2024,
     duracion: 8,
-    curso: "2do",
-    seccion: "1era",
     generos: ["comedia"],
     materia: "Castellano · Guion (DEMO)",
     equipo: equipoDemo(6),
@@ -197,8 +181,6 @@ export const cortos: Corto[] = [
       "[DEMO] Después de una tormenta, una estudiante encuentra en el patio una caja con cartas que nunca llegaron a destino. Drama de suspenso sobre secretos de familia.",
     anio: 2024,
     duracion: 14,
-    curso: "3ero",
-    seccion: "1era",
     generos: ["drama", "suspenso"],
     materia: "Proyecto de Lenguaje Audiovisual (DEMO)",
     equipo: equipoDemo(7),
@@ -218,8 +200,6 @@ export const cortos: Corto[] = [
       "[DEMO] Una hora sin profesor, un aula vacía y una banda que nunca ensayó junta. Comedia musical sobre animarse a subir al escenario en el acto del colegio.",
     anio: 2025,
     duracion: 9,
-    curso: "1ero",
-    seccion: "3era",
     generos: ["comedia", "musical"],
     materia: "Educación Artística (DEMO)",
     equipo: equipoDemo(8),

@@ -8,8 +8,6 @@ export type FilaCorto = {
   sinopsis: string;
   anio: number;
   duracion: number;
-  curso: string;
-  seccion: string;
   generos: string[];
   materia: string;
   equipo: Partial<Equipo> | null;
@@ -33,8 +31,6 @@ export function filaACorto(f: FilaCorto): Corto {
     sinopsis: f.sinopsis,
     anio: f.anio,
     duracion: f.duracion,
-    curso: f.curso,
-    seccion: f.seccion,
     generos: lista(f.generos) as Genero[],
     materia: f.materia,
     equipo: {
@@ -62,8 +58,6 @@ export function cortoAFila(c: Corto, publicado: boolean): FilaCorto {
     sinopsis: c.sinopsis,
     anio: c.anio,
     duracion: c.duracion,
-    curso: c.curso,
-    seccion: c.seccion,
     generos: c.generos,
     materia: c.materia,
     equipo: c.equipo,

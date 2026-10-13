@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { textos } from "@/config/sitio";
-import { cursoYSeccion, formatoDuracion, nombreGenero, type Corto } from "@/lib/cortos";
+import { formatoDuracion, nombreGenero, type Corto } from "@/lib/cortos";
 import { useCatalogo } from "./ContextoCatalogo";
 import { Portada } from "./Portada";
 import { BotonMiLista } from "./BotonMiLista";
@@ -88,9 +88,6 @@ export function FichaContenido({
         <div>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-texto">
             <span>{corto.anio}</span>
-            <span className="rounded border border-texto-suave/50 px-1.5 text-xs text-texto-suave">
-              {cursoYSeccion(corto)}
-            </span>
             <span className="inline-flex items-center gap-1 text-texto-suave">
               <Icono nombre="reloj" className="size-4" />
               {formatoDuracion(corto.duracion)}
@@ -134,8 +131,6 @@ export function FichaContenido({
           <dl className="mt-3 divide-y divide-borde/70 border-y border-borde/70">
             <Fila etiqueta={t.anio} valor={String(corto.anio)} />
             <Fila etiqueta={t.duracion} valor={formatoDuracion(corto.duracion)} />
-            <Fila etiqueta={t.curso} valor={corto.curso} />
-            <Fila etiqueta={t.seccion} valor={corto.seccion} />
             <Fila etiqueta={t.genero} valor={corto.generos.map(nombreGenero).join(", ")} />
             <Fila etiqueta={t.materia} valor={corto.materia} />
           </dl>

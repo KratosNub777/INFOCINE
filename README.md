@@ -20,23 +20,23 @@ Abrí <http://localhost:3000>. Cada vez que guardás un archivo, la página se a
 
 Otros comandos útiles:
 
-| Comando | Para qué sirve |
-| --- | --- |
-| `npm run build` | Arma la versión final (lo mismo que hace Vercel). Si falla, avisa el error. |
-| `npm run lint` | Revisa que el código no tenga errores comunes. |
-| `npm run colores` | Lee el escudo de `public/logo/` y confirma los colores + contraste AA. |
-| `npm run portadas-demo` | Vuelve a generar las portadas de ejemplo. |
-| `npm run agregar-editor -- correo` | Fase 2: da permiso de edición a un profesor/a. |
-| `npm run migrar-a-supabase` | Fase 2: copia los cortos de `data/cortos.ts` a Supabase. |
+| Comando                            | Para qué sirve                                                              |
+| ---------------------------------- | --------------------------------------------------------------------------- |
+| `npm run build`                    | Arma la versión final (lo mismo que hace Vercel). Si falla, avisa el error. |
+| `npm run lint`                     | Revisa que el código no tenga errores comunes.                              |
+| `npm run colores`                  | Lee el escudo de `public/logo/` y confirma los colores + contraste AA.      |
+| `npm run portadas-demo`            | Vuelve a generar las portadas de ejemplo.                                   |
+| `npm run agregar-editor -- correo` | Fase 2: da permiso de edición a un profesor/a.                              |
+| `npm run migrar-a-supabase`        | Fase 2: copia los cortos de `data/cortos.ts` a Supabase.                    |
 
 ## 2. Dónde se cambia cada cosa
 
-| Quiero cambiar… | Archivo |
-| --- | --- |
-| Los cortometrajes | `data/cortos.ts` (o el panel `/admin` si activaste la fase 2) |
-| Colores, textos, menú, géneros | `config/sitio.ts` |
-| El escudo del colegio | `public/logo/` (ver `LEEME.md` adentro) |
-| Las portadas | `public/portadas/` |
+| Quiero cambiar…                | Archivo                                                       |
+| ------------------------------ | ------------------------------------------------------------- |
+| Los cortometrajes              | `data/cortos.ts` (o el panel `/admin` si activaste la fase 2) |
+| Colores, textos, menú, géneros | `config/sitio.ts`                                             |
+| El escudo del colegio          | `public/logo/` (ver `LEEME.md` adentro)                       |
+| Las portadas                   | `public/portadas/`                                            |
 
 ## 3. Agregar un cortometraje nuevo, paso a paso
 
@@ -53,8 +53,6 @@ Otros comandos útiles:
      sinopsis: "De qué se trata, en 2 o 3 líneas.",
      anio: 2026,
      duracion: 11,                         // minutos
-     curso: "3ero",
-     seccion: "1era",
      generos: ["drama", "comedia"],        // ver la lista en config/sitio.ts
      materia: "Lenguaje Audiovisual",
      equipo: {
@@ -83,7 +81,7 @@ Otros comandos útiles:
 ## 4. Subir un video a YouTube como “no listado”
 
 1. Entrá a [studio.youtube.com](https://studio.youtube.com) con la cuenta del colegio → **Crear → Subir videos**.
-2. Completá título y descripción (nombrá al colegio y al curso).
+2. Completá título y descripción (nombrá al colegio).
 3. En **Público**, elegí **“No, no es contenido creado para niños”** o **“Sí”** según corresponda.
    Ojo: si marcás “creado para niños”, YouTube desactiva algunas funciones, pero el video igual se puede insertar.
 4. En **Elementos del video** podés subir **subtítulos** (recomendado: se activan solos en Infocine).
@@ -119,13 +117,13 @@ público, borrá la variable y hacé **Redeploy** otra vez. Para probarlo en tu 
 ## 6. Qué incluye
 
 - Inicio con carrusel de 3 destacados (fundido, haz de luz de proyector, se puede pausar).
-- Filas horizontales: Seguir viendo, Recién agregados, Premiados, Mi lista, por curso, género y año.
+- Filas horizontales: Seguir viendo, Recién agregados, Premiados, Mi lista, género y año.
   Flechas en compu, deslizar con el dedo en celular.
 - Tarjetas que se agrandan al pasar el mouse con reproducir, Mi lista y más info.
 - Ficha en ventana modal y como página propia (`/corto/<id>`), con ficha técnica, equipo y relacionados.
 - Reproductor (`/ver/<id>`) con YouTube, volver y siguiente corto; recuerda dónde quedaste.
-- Buscador en vivo (lupa o tecla `/`) por título, curso (“3ero 1era”), género o integrante.
-- Catálogo con filtros (`/cortometrajes`), página por curso y Mi lista (guardada en el navegador).
+- Buscador en vivo (lupa o tecla `/`) por título, año, género o integrante.
+- Catálogo con filtros (`/cortometrajes`), página por año y Mi lista (guardada en el navegador).
 - Navegación con teclado y control remoto: flechas para moverse, Enter para elegir, Escape para volver.
 - Accesibilidad AA, SEO en es-PY (metadata, Open Graph por corto, sitemap, robots) y respeta
   “reducir movimiento”.

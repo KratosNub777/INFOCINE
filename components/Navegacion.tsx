@@ -102,12 +102,6 @@ function MenuFiltros() {
       items: catalogo.generosDisponibles().map((g) => ({ etiqueta: generos[g], href: `/cortometrajes?genero=${g}` })),
     },
     {
-      titulo: "Curso",
-      items: catalogo
-        .cursosDisponibles()
-        .map((c) => ({ etiqueta: c, href: `/cortometrajes?curso=${encodeURIComponent(c)}` })),
-    },
-    {
       titulo: "Año",
       items: catalogo.aniosDisponibles().map((a) => ({ etiqueta: String(a), href: `/cortometrajes?anio=${a}` })),
     },

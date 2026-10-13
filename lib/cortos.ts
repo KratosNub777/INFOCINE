@@ -5,11 +5,6 @@ export type { Corto };
 
 /* ───────────── Utilidades de un corto ───────────── */
 
-/** “3ero 1era” */
-export function cursoYSeccion(c: Pick<Corto, "curso" | "seccion">): string {
-  return `${c.curso} ${c.seccion}`;
-}
-
 export function nombreGenero(g: Genero): string {
   return generos[g] ?? g;
 }
@@ -48,29 +43,16 @@ export function idYoutube(url: string | null): string | null {
   return /^[\w-]{11}$/.test(url) ? url : null;
 }
 
-/** Número que ordena cursos y secciones: “1ero” → 1, “3era” → 3. */
-function numero(texto: string): number {
-  const n = parseInt(texto, 10);
-  return Number.isNaN(n) ? 99 : n;
-}
-
-/** Variantes de escritura de los cursos: “3ero” = “3ro” = “3°” = “3”. */
-function normalizarCurso(texto: string): string {
-  return normalizar(texto).replace(/(\d+)\s*(ero|ro|er|do|to|era|ra|da|ta|°|º)\b/g, "$1");
-}
-
 function textoBuscable(c: Corto): string {
   const partes = [
     c.titulo,
-    cursoYSeccion(c),
-    `${c.curso} curso`,
     ...c.generos.map((g) => generos[g] ?? g),
     String(c.anio),
     c.profesorGuia,
     c.materia,
     ...Object.values(c.equipo).flat(),
   ];
-  return normalizarCurso(partes.join(" | "));
+  return normalizar(partes.join(" | "));
 }
 
 const masReciente = (a: Corto, b: Corto) => b.agregado.localeCompare(a.agregado);
@@ -90,21 +72,6 @@ export function crearCatalogo(lista: Corto[]) {
   const porId = new Map(lista.map((c) => [c.id, c]));
   const idsNuevos = new Set(recientes.slice(0, sitio.cantidadNuevos).map((c) => c.id));
   const indice = lista.map((c) => ({ c, texto: textoBuscable(c) }));
-
-  function agruparPorCurso(): Grupo[] {
-    const mapa = new Map<string, Corto[]>();
-    for (const c of lista) {
-      const clave = cursoYSeccion(c);
-      mapa.set(clave, [...(mapa.get(clave) ?? []), c]);
-    }
-    return [...mapa.entries()]
-      .sort(([a], [b]) => {
-        const [ca, sa] = a.split(" ");
-        const [cb, sb] = b.split(" ");
-        return numero(cb) - numero(ca) || numero(sa) - numero(sb);
-      })
-      .map(([clave, cortos]) => ({ clave, titulo: clave, cortos: [...cortos].sort(masReciente) }));
-  }
 
   function agruparPorGenero(): Grupo[] {
     return (Object.keys(generos) as Genero[])
@@ -139,21 +106,17 @@ export function crearCatalogo(lista: Corto[]) {
         .sort((a, b) => b.premios.length - a.premios.length);
     },
 
-    agruparPorCurso,
     agruparPorGenero,
     agruparPorAnio,
     aniosDisponibles: () => agruparPorAnio().map((g) => Number(g.clave)),
-    cursosDisponibles: () => agruparPorCurso().map((g) => g.clave),
     generosDisponibles: () => agruparPorGenero().map((g) => g.clave as Genero),
 
-    /** Relacionados: mismo curso o mismo género, los más parecidos primero. */
+    /** Relacionados: mismo género o mismo año, los más parecidos primero. */
     relacionados(corto: Corto, cantidad = 6): Corto[] {
       return lista
         .filter((c) => c.id !== corto.id)
         .map((c) => {
           let puntos = c.generos.filter((g) => corto.generos.includes(g)).length * 2;
-          if (cursoYSeccion(c) === cursoYSeccion(corto)) puntos += 3;
-          else if (c.curso === corto.curso) puntos += 1;
           if (c.anio === corto.anio) puntos += 1;
           return { c, puntos };
         })
@@ -170,17 +133,14 @@ export function crearCatalogo(lista: Corto[]) {
       return recientes[(i + 1) % recientes.length];
     },
 
-    /** Búsqueda en vivo por título, curso, género o integrante. */
+    /** Búsqueda en vivo por título, año, género o integrante. */
     buscar(consulta: string): Corto[] {
-      const terminos = normalizarCurso(consulta).split(/\s+/).filter(Boolean);
+      const terminos = normalizar(consulta).split(/\s+/).filter(Boolean);
       if (!terminos.length) return [];
-      // “3ero 1era” (solo números) es curso + sección: tienen que ir juntos y en ese orden.
-      const soloNumeros = terminos.length > 1 && terminos.every((t) => /^\d+$/.test(t));
-      const pruebas = soloNumeros
-        ? [(s: string) => new RegExp(`\\b${terminos.join(" ")}\\b`).test(s)]
-        : terminos.map((t) =>
-            /^\d+$/.test(t) ? (s: string) => new RegExp(`\\b${t}\\b`).test(s) : (s: string) => s.includes(t),
-          );
+      // Los números (“2025”) tienen que coincidir como palabra completa, no dentro de otro número.
+      const pruebas = terminos.map((t) =>
+        /^\d+$/.test(t) ? (s: string) => new RegExp(`\\b${t}\\b`).test(s) : (s: string) => s.includes(t),
+      );
       const q = normalizar(consulta);
       return indice
         .filter(({ texto }) => pruebas.every((p) => p(texto)))

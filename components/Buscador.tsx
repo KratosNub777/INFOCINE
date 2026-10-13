@@ -20,7 +20,7 @@ export function Buscador() {
   const catalogo = useCatalogo();
   const resultados = catalogo.buscar(diferida);
   const sugerencias = [
-    ...catalogo.cursosDisponibles().slice(0, 4),
+    ...catalogo.aniosDisponibles().slice(0, 3).map(String),
     ...catalogo.generosDisponibles().slice(0, 5).map(nombreGenero),
   ];
 
