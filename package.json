@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
+    "portadas-demo": "node scripts/generar-portadas-demo.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {
