@@ -61,6 +61,18 @@ const trazos = {
       <path d="M12 7v5l3 2" />
     </>
   ),
+  corazon: <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" />,
+  corazonLleno: <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" fill="currentColor" />,
+  ojo: (
+    <>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="2.75" />
+    </>
+  ),
+  editar: <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" />,
+  subir: <path d="M12 16V4m-5 5 5-5 5 5M5 20h14" />,
+  basura: <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />,
+  salir: <path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" />,
   candado: (
     <>
       <rect x="5" y="10.5" width="14" height="10" rx="2" />
