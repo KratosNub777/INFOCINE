@@ -1,13 +1,14 @@
 import { sitio, textos } from "@/config/sitio";
-import { agruparPorAnio, agruparPorCurso, agruparPorGenero, destacados, porReciente, premiados } from "@/lib/cortos";
+import { obtenerCatalogo } from "@/lib/datos";
 import { Hero } from "@/components/Hero";
 import { Fila } from "@/components/Fila";
 import { FilaMiLista, FilaSeguirViendo } from "@/components/FilasUsuario";
 
-export default function Inicio() {
-  const cursos = agruparPorCurso();
-  const generos = agruparPorGenero().filter((g) => g.cortos.length >= sitio.minimoPorFila);
-  const anios = agruparPorAnio().filter((g) => g.cortos.length >= sitio.minimoPorFila);
+export default async function Inicio() {
+  const catalogo = await obtenerCatalogo();
+  const cursos = catalogo.agruparPorCurso();
+  const generos = catalogo.agruparPorGenero().filter((g) => g.cortos.length >= sitio.minimoPorFila);
+  const anios = catalogo.agruparPorAnio().filter((g) => g.cortos.length >= sitio.minimoPorFila);
   let i = 0;
 
   return (
@@ -15,16 +16,16 @@ export default function Inicio() {
       <h1 className="sr-only">
         {sitio.nombre}: cortometrajes del {sitio.colegio}, {sitio.ciudad}
       </h1>
-      <Hero cortos={destacados()} />
+      <Hero cortos={catalogo.destacados()} />
       <div className="relative z-10 -mt-[clamp(1.5rem,5vh,4rem)] space-y-[clamp(1.25rem,3vw,2.75rem)]">
         <FilaSeguirViendo />
         <Fila
           titulo={textos.filas.recientes}
-          cortos={porReciente().slice(0, 12)}
+          cortos={catalogo.recientes.slice(0, 12)}
           verTodo="/cortometrajes"
           indice={i++}
         />
-        <Fila titulo={textos.filas.premiados} cortos={premiados()} variante="v" indice={i++} />
+        <Fila titulo={textos.filas.premiados} cortos={catalogo.premiados()} variante="v" indice={i++} />
         <FilaMiLista />
         {cursos.map((g) => (
           <Fila

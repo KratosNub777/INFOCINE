@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { textos } from "@/config/sitio";
-import { cursoYSeccion, esNuevo, formatoDuracion, type Corto } from "@/lib/cortos";
+import { cursoYSeccion, formatoDuracion, type Corto } from "@/lib/cortos";
+import { useCatalogo } from "./ContextoCatalogo";
 import { useInterfaz } from "./Proveedores";
 import { Portada } from "./Portada";
 import { BotonMiLista } from "./BotonMiLista";
@@ -27,6 +28,7 @@ export function Tarjeta({
   enGrilla?: boolean;
 }) {
   const { abrirFicha } = useInterfaz();
+  const { esNuevo } = useCatalogo();
   const vertical = variante === "v";
   const meta = `${formatoDuracion(corto.duracion)} · ${cursoYSeccion(corto)} · ${corto.anio}`;
   const premiado = corto.premios.length > 0;

@@ -3,12 +3,11 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { textos } from "@/config/sitio";
-import { buscar, cursosDisponibles, generosDisponibles, nombreGenero } from "@/lib/cortos";
+import { nombreGenero } from "@/lib/cortos";
+import { useCatalogo } from "./ContextoCatalogo";
 import { useInterfaz } from "./Proveedores";
 import { Tarjeta } from "./Tarjeta";
 import { Icono } from "./Icono";
-
-const sugerencias = [...cursosDisponibles().slice(0, 4), ...generosDisponibles().slice(0, 5).map(nombreGenero)];
 
 /** Buscador en vivo, a pantalla completa. Se abre con la lupa o con “/”. */
 export function Buscador() {
@@ -18,7 +17,12 @@ export function Buscador() {
   const resultadosRef = useRef<HTMLDivElement>(null);
   const [consulta, setConsulta] = useState("");
   const diferida = useDeferredValue(consulta);
-  const resultados = buscar(diferida);
+  const catalogo = useCatalogo();
+  const resultados = catalogo.buscar(diferida);
+  const sugerencias = [
+    ...catalogo.cursosDisponibles().slice(0, 4),
+    ...catalogo.generosDisponibles().slice(0, 5).map(nombreGenero),
+  ];
 
   useEffect(() => {
     const d = dialogo.current;

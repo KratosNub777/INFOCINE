@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { agruparPorCurso } from "@/lib/cortos";
+import { obtenerCatalogo } from "@/lib/datos";
 import { Fila } from "@/components/Fila";
 import { Encabezado } from "@/components/Encabezado";
 import { sitio } from "@/config/sitio";
@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/por-curso" },
 };
 
-export default function PaginaPorCurso() {
-  const grupos = agruparPorCurso();
+export default async function PaginaPorCurso() {
+  const grupos = (await obtenerCatalogo()).agruparPorCurso();
   return (
     <>
       <Encabezado titulo="Por curso y sección">Los cortos de cada curso, del más reciente al más antiguo.</Encabezado>

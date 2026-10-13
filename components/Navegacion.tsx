@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { generos, navegacion, textos } from "@/config/sitio";
-import { aniosDisponibles, cursosDisponibles, generosDisponibles } from "@/lib/cortos";
+import { useCatalogo } from "./ContextoCatalogo";
 import { useInterfaz } from "./Proveedores";
 import { Icono, type NombreIcono } from "./Icono";
 
@@ -93,20 +93,23 @@ function EnlacesHeader({ ruta }: { ruta: string | null }) {
 /* ───────────── Menú de filtros ───────────── */
 
 function MenuFiltros() {
+  const catalogo = useCatalogo();
   const panel = useRef<HTMLDivElement>(null);
   const cerrar = () => panel.current?.hidePopover();
   const grupos: { titulo: string; items: { etiqueta: string; href: string }[] }[] = [
     {
       titulo: "Género",
-      items: generosDisponibles().map((g) => ({ etiqueta: generos[g], href: `/cortometrajes?genero=${g}` })),
+      items: catalogo.generosDisponibles().map((g) => ({ etiqueta: generos[g], href: `/cortometrajes?genero=${g}` })),
     },
     {
       titulo: "Curso",
-      items: cursosDisponibles().map((c) => ({ etiqueta: c, href: `/cortometrajes?curso=${encodeURIComponent(c)}` })),
+      items: catalogo
+        .cursosDisponibles()
+        .map((c) => ({ etiqueta: c, href: `/cortometrajes?curso=${encodeURIComponent(c)}` })),
     },
     {
       titulo: "Año",
-      items: aniosDisponibles().map((a) => ({ etiqueta: String(a), href: `/cortometrajes?anio=${a}` })),
+      items: catalogo.aniosDisponibles().map((a) => ({ etiqueta: String(a), href: `/cortometrajes?anio=${a}` })),
     },
   ];
 

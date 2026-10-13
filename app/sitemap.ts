@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
 import { sitio } from "@/config/sitio";
 import { accesoActivado } from "@/lib/acceso";
-import { porReciente } from "@/lib/cortos";
+import { obtenerCatalogo, urlAbsoluta } from "@/lib/datos";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (accesoActivado()) return [];
-  const cortos = porReciente();
+  const cortos = (await obtenerCatalogo()).recientes;
   const ultima = cortos[0]?.agregado;
   return [
     { url: `${sitio.url}/`, lastModified: ultima, changeFrequency: "weekly", priority: 1 },
@@ -16,7 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: c.agregado,
       changeFrequency: "monthly" as const,
       priority: 0.7,
-      images: [`${sitio.url}${c.portada}`],
+      images: [urlAbsoluta(c.portada, sitio.url)],
     })),
   ];
 }

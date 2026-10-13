@@ -1,15 +1,9 @@
-import { cortos, type Corto } from "@/data/cortos";
+import type { Corto } from "@/data/cortos";
 import { generos, sitio, type Genero } from "@/config/sitio";
 
 export type { Corto };
 
-export function todosLosCortos(): Corto[] {
-  return cortos;
-}
-
-export function buscarCorto(id: string): Corto | undefined {
-  return cortos.find((c) => c.id === id);
-}
+/* ───────────── Utilidades de un corto ───────────── */
 
 /** “3ero 1era” */
 export function cursoYSeccion(c: Pick<Corto, "curso" | "seccion">): string {
@@ -27,111 +21,6 @@ export function formatoDuracion(minutos: number): string {
   return m ? `${h} h ${m} min` : `${h} h`;
 }
 
-/** Número que ordena cursos y secciones: “1ero” → 1, “3era” → 3. */
-function numero(texto: string): number {
-  const n = parseInt(texto, 10);
-  return Number.isNaN(n) ? 99 : n;
-}
-
-export function porReciente(lista: Corto[] = cortos): Corto[] {
-  return [...lista].sort((a, b) => b.agregado.localeCompare(a.agregado));
-}
-
-const idsNuevos = new Set(
-  porReciente()
-    .slice(0, sitio.cantidadNuevos)
-    .map((c) => c.id),
-);
-
-export function esNuevo(c: Corto): boolean {
-  return idsNuevos.has(c.id);
-}
-
-export function destacados(): Corto[] {
-  const lista = cortos.filter((c) => c.destacado);
-  return (lista.length ? lista : porReciente()).slice(0, 3);
-}
-
-export function premiados(): Corto[] {
-  return porReciente(cortos.filter((c) => c.premios.length > 0 || c.destacado)).sort(
-    (a, b) => b.premios.length - a.premios.length,
-  );
-}
-
-export type Grupo = { clave: string; titulo: string; cortos: Corto[] };
-
-export function agruparPorCurso(): Grupo[] {
-  const mapa = new Map<string, Corto[]>();
-  for (const c of cortos) {
-    const clave = cursoYSeccion(c);
-    mapa.set(clave, [...(mapa.get(clave) ?? []), c]);
-  }
-  return [...mapa.entries()]
-    .sort(([a], [b]) => {
-      const [ca, sa] = a.split(" ");
-      const [cb, sb] = b.split(" ");
-      return numero(cb) - numero(ca) || numero(sa) - numero(sb);
-    })
-    .map(([clave, lista]) => ({ clave, titulo: clave, cortos: porReciente(lista) }));
-}
-
-export function agruparPorGenero(): Grupo[] {
-  return (Object.keys(generos) as Genero[])
-    .map((g) => ({
-      clave: g,
-      titulo: generos[g],
-      cortos: porReciente(cortos.filter((c) => c.generos.includes(g))),
-    }))
-    .filter((g) => g.cortos.length > 0)
-    .sort((a, b) => b.cortos.length - a.cortos.length);
-}
-
-export function agruparPorAnio(): Grupo[] {
-  const anios = [...new Set(cortos.map((c) => c.anio))].sort((a, b) => b - a);
-  return anios.map((anio) => ({
-    clave: String(anio),
-    titulo: String(anio),
-    cortos: porReciente(cortos.filter((c) => c.anio === anio)),
-  }));
-}
-
-export function aniosDisponibles(): number[] {
-  return [...new Set(cortos.map((c) => c.anio))].sort((a, b) => b - a);
-}
-
-export function cursosDisponibles(): string[] {
-  return agruparPorCurso().map((g) => g.clave);
-}
-
-export function generosDisponibles(): Genero[] {
-  return agruparPorGenero().map((g) => g.clave as Genero);
-}
-
-/** Relacionados: mismo curso o mismo género, los más parecidos primero. */
-export function relacionados(corto: Corto, cantidad = 6): Corto[] {
-  return cortos
-    .filter((c) => c.id !== corto.id)
-    .map((c) => {
-      let puntos = c.generos.filter((g) => corto.generos.includes(g)).length * 2;
-      if (cursoYSeccion(c) === cursoYSeccion(corto)) puntos += 3;
-      else if (c.curso === corto.curso) puntos += 1;
-      if (c.anio === corto.anio) puntos += 1;
-      return { c, puntos };
-    })
-    .filter((x) => x.puntos > 0)
-    .sort((a, b) => b.puntos - a.puntos || b.c.agregado.localeCompare(a.c.agregado))
-    .slice(0, cantidad)
-    .map((x) => x.c);
-}
-
-/** El que sigue en “Recién agregados” (vuelve al principio al llegar al final). */
-export function siguienteCorto(corto: Corto): Corto | undefined {
-  const lista = porReciente();
-  if (lista.length < 2) return undefined;
-  const i = lista.findIndex((c) => c.id === corto.id);
-  return lista[(i + 1) % lista.length];
-}
-
 /** Saca acentos y pasa a minúsculas: “Animación” → “animacion”. */
 export function normalizar(texto: string): string {
   return texto
@@ -139,6 +28,30 @@ export function normalizar(texto: string): string {
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase()
     .trim();
+}
+
+/** “La última clase” → “la-ultima-clase” (para el id y la dirección web). */
+export function aSlug(texto: string): string {
+  return normalizar(texto)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+/** Extrae el ID de video de cualquier enlace de YouTube. */
+export function idYoutube(url: string | null): string | null {
+  if (!url) return null;
+  const m = url.match(
+    /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/,
+  );
+  if (m) return m[1];
+  return /^[\w-]{11}$/.test(url) ? url : null;
+}
+
+/** Número que ordena cursos y secciones: “1ero” → 1, “3era” → 3. */
+function numero(texto: string): number {
+  const n = parseInt(texto, 10);
+  return Number.isNaN(n) ? 99 : n;
 }
 
 /** Variantes de escritura de los cursos: “3ero” = “3ro” = “3°” = “3”. */
@@ -151,7 +64,7 @@ function textoBuscable(c: Corto): string {
     c.titulo,
     cursoYSeccion(c),
     `${c.curso} curso`,
-    ...c.generos.map((g) => generos[g]),
+    ...c.generos.map((g) => generos[g] ?? g),
     String(c.anio),
     c.profesorGuia,
     c.materia,
@@ -160,37 +73,123 @@ function textoBuscable(c: Corto): string {
   return normalizarCurso(partes.join(" | "));
 }
 
-const indice = cortos.map((c) => ({ c, texto: textoBuscable(c) }));
+const masReciente = (a: Corto, b: Corto) => b.agregado.localeCompare(a.agregado);
 
-/** Búsqueda en vivo por título, curso, género o integrante. */
-export function buscar(consulta: string): Corto[] {
-  const terminos = normalizarCurso(consulta).split(/\s+/).filter(Boolean);
-  if (!terminos.length) return [];
-  // Los números (“3”, “2025”) tienen que coincidir enteros, no dentro de otro número.
-  // “3ero 1era” (solo números) es curso + sección: tienen que ir juntos y en ese orden.
-  const soloNumeros = terminos.length > 1 && terminos.every((t) => /^\d+$/.test(t));
-  const pruebas = soloNumeros
-    ? [(s: string) => new RegExp(`\\b${terminos.join(" ")}\\b`).test(s)]
-    : terminos.map((t) =>
-        /^\d+$/.test(t) ? (s: string) => new RegExp(`\\b${t}\\b`).test(s) : (s: string) => s.includes(t),
-      );
-  return indice
-    .filter(({ texto }) => pruebas.every((p) => p(texto)))
-    .map(({ c }) => c)
-    .sort((a, b) => {
+/* ───────────── Catálogo ───────────── */
+
+export type Grupo = { clave: string; titulo: string; cortos: Corto[] };
+export type Catalogo = ReturnType<typeof crearCatalogo>;
+
+/**
+ * Arma el catálogo a partir de una lista de cortos (de data/cortos.ts o de
+ * Supabase). Lo usan tanto las páginas del servidor como los componentes
+ * del navegador.
+ */
+export function crearCatalogo(lista: Corto[]) {
+  const recientes = [...lista].sort(masReciente);
+  const porId = new Map(lista.map((c) => [c.id, c]));
+  const idsNuevos = new Set(recientes.slice(0, sitio.cantidadNuevos).map((c) => c.id));
+  const indice = lista.map((c) => ({ c, texto: textoBuscable(c) }));
+
+  function agruparPorCurso(): Grupo[] {
+    const mapa = new Map<string, Corto[]>();
+    for (const c of lista) {
+      const clave = cursoYSeccion(c);
+      mapa.set(clave, [...(mapa.get(clave) ?? []), c]);
+    }
+    return [...mapa.entries()]
+      .sort(([a], [b]) => {
+        const [ca, sa] = a.split(" ");
+        const [cb, sb] = b.split(" ");
+        return numero(cb) - numero(ca) || numero(sa) - numero(sb);
+      })
+      .map(([clave, cortos]) => ({ clave, titulo: clave, cortos: [...cortos].sort(masReciente) }));
+  }
+
+  function agruparPorGenero(): Grupo[] {
+    return (Object.keys(generos) as Genero[])
+      .map((g) => ({ clave: g, titulo: generos[g], cortos: recientes.filter((c) => c.generos.includes(g)) }))
+      .filter((g) => g.cortos.length > 0)
+      .sort((a, b) => b.cortos.length - a.cortos.length);
+  }
+
+  function agruparPorAnio(): Grupo[] {
+    const anios = [...new Set(lista.map((c) => c.anio))].sort((a, b) => b - a);
+    return anios.map((anio) => ({
+      clave: String(anio),
+      titulo: String(anio),
+      cortos: recientes.filter((c) => c.anio === anio),
+    }));
+  }
+
+  return {
+    todos: lista,
+    recientes,
+    porId: (id: string) => porId.get(id),
+    esNuevo: (c: Corto) => idsNuevos.has(c.id),
+
+    destacados(): Corto[] {
+      const elegidos = recientes.filter((c) => c.destacado);
+      return (elegidos.length ? elegidos : recientes).slice(0, 3);
+    },
+
+    premiados(): Corto[] {
+      return recientes
+        .filter((c) => c.premios.length > 0 || c.destacado)
+        .sort((a, b) => b.premios.length - a.premios.length);
+    },
+
+    agruparPorCurso,
+    agruparPorGenero,
+    agruparPorAnio,
+    aniosDisponibles: () => agruparPorAnio().map((g) => Number(g.clave)),
+    cursosDisponibles: () => agruparPorCurso().map((g) => g.clave),
+    generosDisponibles: () => agruparPorGenero().map((g) => g.clave as Genero),
+
+    /** Relacionados: mismo curso o mismo género, los más parecidos primero. */
+    relacionados(corto: Corto, cantidad = 6): Corto[] {
+      return lista
+        .filter((c) => c.id !== corto.id)
+        .map((c) => {
+          let puntos = c.generos.filter((g) => corto.generos.includes(g)).length * 2;
+          if (cursoYSeccion(c) === cursoYSeccion(corto)) puntos += 3;
+          else if (c.curso === corto.curso) puntos += 1;
+          if (c.anio === corto.anio) puntos += 1;
+          return { c, puntos };
+        })
+        .filter((x) => x.puntos > 0)
+        .sort((a, b) => b.puntos - a.puntos || masReciente(a.c, b.c))
+        .slice(0, cantidad)
+        .map((x) => x.c);
+    },
+
+    /** El que sigue en “Recién agregados” (vuelve al principio al llegar al final). */
+    siguiente(corto: Corto): Corto | undefined {
+      if (recientes.length < 2) return undefined;
+      const i = recientes.findIndex((c) => c.id === corto.id);
+      return recientes[(i + 1) % recientes.length];
+    },
+
+    /** Búsqueda en vivo por título, curso, género o integrante. */
+    buscar(consulta: string): Corto[] {
+      const terminos = normalizarCurso(consulta).split(/\s+/).filter(Boolean);
+      if (!terminos.length) return [];
+      // “3ero 1era” (solo números) es curso + sección: tienen que ir juntos y en ese orden.
+      const soloNumeros = terminos.length > 1 && terminos.every((t) => /^\d+$/.test(t));
+      const pruebas = soloNumeros
+        ? [(s: string) => new RegExp(`\\b${terminos.join(" ")}\\b`).test(s)]
+        : terminos.map((t) =>
+            /^\d+$/.test(t) ? (s: string) => new RegExp(`\\b${t}\\b`).test(s) : (s: string) => s.includes(t),
+          );
       const q = normalizar(consulta);
-      const ta = normalizar(a.titulo).includes(q) ? 0 : 1;
-      const tb = normalizar(b.titulo).includes(q) ? 0 : 1;
-      return ta - tb || b.agregado.localeCompare(a.agregado);
-    });
-}
-
-/** Extrae el ID de video de cualquier enlace de YouTube. */
-export function idYoutube(url: string | null): string | null {
-  if (!url) return null;
-  const m = url.match(
-    /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/,
-  );
-  if (m) return m[1];
-  return /^[\w-]{11}$/.test(url) ? url : null;
+      return indice
+        .filter(({ texto }) => pruebas.every((p) => p(texto)))
+        .map(({ c }) => c)
+        .sort((a, b) => {
+          const ta = normalizar(a.titulo).includes(q) ? 0 : 1;
+          const tb = normalizar(b.titulo).includes(q) ? 0 : 1;
+          return ta - tb || masReciente(a, b);
+        });
+    },
+  };
 }

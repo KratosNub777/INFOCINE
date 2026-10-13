@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { buscarCorto, siguienteCorto, todosLosCortos } from "@/lib/cortos";
+import { idsDeCortos, obtenerCatalogo } from "@/lib/datos";
 import { Reproductor } from "@/components/Reproductor";
 
 export function generateStaticParams() {
-  return todosLosCortos().map((c) => ({ id: c.id }));
+  return idsDeCortos();
 }
 
 export async function generateMetadata({ params }: PageProps<"/ver/[id]">): Promise<Metadata> {
   const { id } = await params;
-  const corto = buscarCorto(id);
+  const corto = (await obtenerCatalogo()).porId(id);
   return {
     title: corto ? `Ver “${corto.titulo}”` : "Reproductor",
     alternates: corto ? { canonical: `/corto/${corto.id}` } : undefined,
@@ -19,7 +19,8 @@ export async function generateMetadata({ params }: PageProps<"/ver/[id]">): Prom
 
 export default async function PaginaVer({ params }: PageProps<"/ver/[id]">) {
   const { id } = await params;
-  const corto = buscarCorto(id);
+  const catalogo = await obtenerCatalogo();
+  const corto = catalogo.porId(id);
   if (!corto) notFound();
-  return <Reproductor corto={corto} siguiente={siguienteCorto(corto)} />;
+  return <Reproductor corto={corto} siguiente={catalogo.siguiente(corto)} />;
 }

@@ -3,22 +3,17 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useSearchParams } from "next/navigation";
 import { generos, textos, type Genero } from "@/config/sitio";
-import {
-  aniosDisponibles,
-  cursosDisponibles,
-  cursoYSeccion,
-  generosDisponibles,
-  porReciente,
-  todosLosCortos,
-} from "@/lib/cortos";
+import { cursoYSeccion } from "@/lib/cortos";
 import { useMiLista } from "@/lib/almacen";
 import { Tarjeta } from "./Tarjeta";
+import { useCatalogo } from "./ContextoCatalogo";
 
 type Filtros = { genero: string; curso: string; anio: string };
 
 /** Grilla de todos los cortos con filtros por género, curso y año. */
 export function Catalogo() {
   // Los filtros viven en la URL (?genero=drama&anio=2025): se pueden compartir.
+  const catalogo = useCatalogo();
   const params = useSearchParams();
   const filtros: Filtros = {
     genero: params.get("genero") ?? "",
@@ -34,7 +29,7 @@ export function Catalogo() {
     window.history.replaceState(null, "", query ? `?${query}` : window.location.pathname);
   }
 
-  const lista = porReciente(todosLosCortos()).filter(
+  const lista = catalogo.recientes.filter(
     (c) =>
       (!filtros.genero || c.generos.includes(filtros.genero as Genero)) &&
       (!filtros.curso || cursoYSeccion(c) === filtros.curso) &&
@@ -46,19 +41,19 @@ export function Catalogo() {
       <div className="space-y-3">
         <GrupoFiltro
           titulo="Género"
-          opciones={generosDisponibles().map((g) => ({ valor: g, etiqueta: generos[g] }))}
+          opciones={catalogo.generosDisponibles().map((g) => ({ valor: g, etiqueta: generos[g] }))}
           actual={filtros.genero}
           alCambiar={(v) => cambiar("genero", v)}
         />
         <GrupoFiltro
           titulo="Curso"
-          opciones={cursosDisponibles().map((c) => ({ valor: c, etiqueta: c }))}
+          opciones={catalogo.cursosDisponibles().map((c) => ({ valor: c, etiqueta: c }))}
           actual={filtros.curso}
           alCambiar={(v) => cambiar("curso", v)}
         />
         <GrupoFiltro
           titulo="Año"
-          opciones={aniosDisponibles().map((a) => ({ valor: String(a), etiqueta: String(a) }))}
+          opciones={catalogo.aniosDisponibles().map((a) => ({ valor: String(a), etiqueta: String(a) }))}
           actual={filtros.anio}
           alCambiar={(v) => cambiar("anio", v)}
         />
@@ -144,10 +139,9 @@ const chip = (activo: boolean) =>
 
 /** Grilla de “Mi lista” (página dedicada). */
 export function GrillaMiLista() {
+  const { porId } = useCatalogo();
   const { ids } = useMiLista();
-  const cortos = ids
-    .map((id) => todosLosCortos().find((c) => c.id === id))
-    .filter((c): c is NonNullable<typeof c> => Boolean(c));
+  const cortos = ids.map(porId).filter((c): c is NonNullable<typeof c> => Boolean(c));
 
   if (!cortos.length) {
     return <p className="mt-6 max-w-xl text-cuerpo text-texto-suave">{textos.miListaVacia}</p>;

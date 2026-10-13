@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { textos } from "@/config/sitio";
-import { cursoYSeccion, esNuevo, formatoDuracion, nombreGenero, relacionados, type Corto } from "@/lib/cortos";
+import { cursoYSeccion, formatoDuracion, nombreGenero, type Corto } from "@/lib/cortos";
+import { useCatalogo } from "./ContextoCatalogo";
 import { Portada } from "./Portada";
 import { BotonMiLista } from "./BotonMiLista";
 import { Tarjeta } from "./Tarjeta";
@@ -23,6 +24,7 @@ export function FichaContenido({
 }) {
   const Titulo = enModal ? "h2" : "h1";
   const Subtitulo = enModal ? "h3" : "h2";
+  const { esNuevo, relacionados } = useCatalogo();
   const lista = relacionados(corto);
   const equipo: [string, string[] | undefined][] = [
     [t.direccion, corto.equipo.direccion],

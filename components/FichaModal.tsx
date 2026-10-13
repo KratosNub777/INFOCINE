@@ -3,8 +3,8 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import { textos } from "@/config/sitio";
-import { buscarCorto } from "@/lib/cortos";
 import { useInterfaz } from "./Proveedores";
+import { useCatalogo } from "./ContextoCatalogo";
 import { FichaContenido } from "./FichaContenido";
 import { Icono } from "./Icono";
 
@@ -19,7 +19,8 @@ export function FichaModal() {
   const botonCerrar = useRef<HTMLButtonElement>(null);
   const retorno = useRef<HTMLElement | null>(null);
   // Al cerrar, AnimatePresence conserva el último contenido durante la salida.
-  const corto = fichaId ? buscarCorto(fichaId) : undefined;
+  const { porId } = useCatalogo();
+  const corto = fichaId ? porId(fichaId) : undefined;
 
   // Abrir o cambiar de corto
   useEffect(() => {

@@ -2,7 +2,8 @@ import { ImageResponse } from "next/og";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { colores, sitio } from "@/config/sitio";
-import { buscarCorto, cursoYSeccion, todosLosCortos } from "@/lib/cortos";
+import { cursoYSeccion } from "@/lib/cortos";
+import { idsDeCortos, obtenerCatalogo } from "@/lib/datos";
 import { TRAZO_RAYO } from "@/components/Logo";
 
 export const alt = "Portada del cortometraje en Infocine";
@@ -10,7 +11,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export function generateStaticParams() {
-  return todosLosCortos().map((c) => ({ id: c.id }));
+  return idsDeCortos();
 }
 
 const TIPOS: Record<string, string> = {
@@ -23,11 +24,14 @@ const TIPOS: Record<string, string> = {
 /** Imagen para compartir (WhatsApp, Facebook…): la portada horizontal + título. */
 export default async function Imagen({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const corto = buscarCorto(id);
+  const corto = (await obtenerCatalogo()).porId(id);
 
   // Las portadas reales (.jpg/.png/.webp) se usan de fondo. Las SVG demo se reemplazan por un degradado.
   let fondo: string | null = null;
-  if (corto && !corto.imagenHorizontal.endsWith(".svg")) {
+  if (corto && /^https?:\/\//.test(corto.imagenHorizontal)) {
+    // Portadas subidas desde el panel (Supabase Storage)
+    fondo = corto.imagenHorizontal;
+  } else if (corto && !corto.imagenHorizontal.endsWith(".svg")) {
     const ext = path.extname(corto.imagenHorizontal).toLowerCase();
     if (TIPOS[ext]) {
       try {

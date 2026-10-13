@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { sitio } from "@/config/sitio";
-import { buscarCorto, cursoYSeccion, formatoDuracion, todosLosCortos } from "@/lib/cortos";
+import { cursoYSeccion, formatoDuracion } from "@/lib/cortos";
+import { idsDeCortos, obtenerCatalogo } from "@/lib/datos";
 import { FichaContenido } from "@/components/FichaContenido";
 
 export function generateStaticParams() {
-  return todosLosCortos().map((c) => ({ id: c.id }));
+  return idsDeCortos();
 }
 
 export async function generateMetadata({ params }: PageProps<"/corto/[id]">): Promise<Metadata> {
   const { id } = await params;
-  const corto = buscarCorto(id);
+  const corto = (await obtenerCatalogo()).porId(id);
   if (!corto) return { title: "Corto no encontrado" };
   const descripcion = `${corto.sinopsis} · ${cursoYSeccion(corto)}, ${corto.anio}, ${formatoDuracion(corto.duracion)}.`;
   return {
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }: PageProps<"/corto/[id]">): Pr
 
 export default async function PaginaCorto({ params }: PageProps<"/corto/[id]">) {
   const { id } = await params;
-  const corto = buscarCorto(id);
+  const corto = (await obtenerCatalogo()).porId(id);
   if (!corto) notFound();
   return (
     <div className="pt-[var(--alto-header)]">

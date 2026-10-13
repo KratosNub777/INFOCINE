@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { FichaModal } from "./FichaModal";
 import { Buscador } from "./Buscador";
+import { ProveedorCatalogo } from "./ContextoCatalogo";
+import type { Corto } from "@/lib/cortos";
 
 type Interfaz = {
   fichaId: string | null;
@@ -23,7 +25,7 @@ export function useInterfaz() {
   return ctx;
 }
 
-export function Proveedores({ children }: { children: ReactNode }) {
+export function Proveedores({ cortos, children }: { cortos: Corto[]; children: ReactNode }) {
   const [fichaId, setFichaId] = useState<string | null>(null);
   const [buscadorAbierto, setBuscadorAbierto] = useState(false);
 
@@ -50,14 +52,16 @@ export function Proveedores({ children }: { children: ReactNode }) {
 
   return (
     <MotionConfig reducedMotion="user">
-      <Contexto.Provider value={valor}>
-        {children}
-        <FichaModal />
-        <Buscador />
-        <Suspense>
-          <CerrarAlNavegar alNavegar={cerrarTodo} />
-        </Suspense>
-      </Contexto.Provider>
+      <ProveedorCatalogo cortos={cortos}>
+        <Contexto.Provider value={valor}>
+          {children}
+          <FichaModal />
+          <Buscador />
+          <Suspense>
+            <CerrarAlNavegar alNavegar={cerrarTodo} />
+          </Suspense>
+        </Contexto.Provider>
+      </ProveedorCatalogo>
     </MotionConfig>
   );
 }

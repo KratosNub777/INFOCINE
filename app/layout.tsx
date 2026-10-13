@@ -3,6 +3,7 @@ import { Archivo } from "next/font/google";
 import { colores, sitio } from "@/config/sitio";
 import { accesoActivado } from "@/lib/acceso";
 import { Proveedores } from "@/components/Proveedores";
+import { obtenerCortos } from "@/lib/datos";
 import "./globals.css";
 
 // Una sola familia: Archivo (variable), con eje de ancho para los títulos condensados.
@@ -49,7 +50,9 @@ const variablesDeColor = `:root{${Object.entries(colores)
   .map(([k, v]) => `--c-${k}:${v}`)
   .join(";")}}`;
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // El catálogo llega a los componentes del navegador (tarjetas, buscador, ficha).
+  const cortos = await obtenerCortos();
   return (
     <html lang={sitio.idioma} className={archivo.variable}>
       <head>
@@ -61,7 +64,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 -z-50 bg-[radial-gradient(120%_70%_at_50%_-10%,var(--c-azulOscuro)_0%,transparent_60%),radial-gradient(80%_50%_at_100%_110%,color-mix(in_oklab,var(--c-azul)_25%,transparent)_0%,transparent_70%)]"
         />
-        <Proveedores>{children}</Proveedores>
+        <Proveedores cortos={cortos}>{children}</Proveedores>
       </body>
     </html>
   );
