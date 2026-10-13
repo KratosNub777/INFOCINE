@@ -6,6 +6,7 @@ import { cursoYSeccion, formatoDuracion, nombreGenero, type Corto } from "@/lib/
 import { useCatalogo } from "./ContextoCatalogo";
 import { Portada } from "./Portada";
 import { BotonMiLista } from "./BotonMiLista";
+import { BotonMeGusta, ContadorVistas } from "./BotonMeGusta";
 import { Tarjeta } from "./Tarjeta";
 import { Icono } from "./Icono";
 import { EtiquetaDemo, EtiquetaNuevo } from "./Etiquetas";
@@ -78,6 +79,7 @@ export function FichaContenido({
               {textos.verAhora}
             </Link>
             <BotonMiLista id={corto.id} titulo={corto.titulo} variante="completo" />
+            <BotonMeGusta id={corto.id} titulo={corto.titulo} />
           </div>
         </div>
       </div>
@@ -93,6 +95,7 @@ export function FichaContenido({
               <Icono nombre="reloj" className="size-4" />
               {formatoDuracion(corto.duracion)}
             </span>
+            <ContadorVistas id={corto.id} />
           </p>
           <Subtitulo className="sr-only">{t.sinopsis}</Subtitulo>
           <p className="mt-4 text-cuerpo text-texto">{corto.sinopsis}</p>
