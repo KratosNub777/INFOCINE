@@ -2,6 +2,7 @@
 
 import { MotionConfig } from "motion/react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { FichaModal } from "./FichaModal";
 
 type Interfaz = {
   fichaId: string | null;
@@ -44,6 +45,7 @@ export function Proveedores({ children }: { children: ReactNode }) {
     <MotionConfig reducedMotion="user">
       <Contexto.Provider value={valor}>
         {children}
+        <FichaModal />
       </Contexto.Provider>
     </MotionConfig>
   );
