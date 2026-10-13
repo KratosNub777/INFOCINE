@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
   // Con código de acceso, el sitio es privado: no se indexa.
   if (accesoActivado()) return { rules: { userAgent: "*", disallow: "/" } };
   return {
-    rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/acceso", "/ver/", "/mi-lista"] },
+    rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/acceso", "/admin", "/ver/", "/mi-lista"] },
     sitemap: `${sitio.url}/sitemap.xml`,
   };
 }
