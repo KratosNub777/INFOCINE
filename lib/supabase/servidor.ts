@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { supabaseClave, supabaseUrl } from "./config";
 
 /** Cliente con la sesión del profesor (cookies). Para el panel y sus acciones. */
@@ -21,6 +22,8 @@ export async function clienteServidor() {
 
 /** Devuelve el profesor con sesión iniciada y si tiene permiso de editor. */
 export async function sesionActual() {
+  // La sesión siempre se lee al momento del pedido (nunca en un prerender).
+  await connection();
   const supabase = await clienteServidor();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return { supabase, usuario: null, esEditor: false };
