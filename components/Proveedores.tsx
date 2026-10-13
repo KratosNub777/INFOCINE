@@ -1,7 +1,8 @@
 "use client";
 
 import { MotionConfig } from "motion/react";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { FichaModal } from "./FichaModal";
 import { Buscador } from "./Buscador";
 
@@ -34,6 +35,11 @@ export function Proveedores({ children }: { children: ReactNode }) {
   const abrirBuscador = useCallback(() => setBuscadorAbierto(true), []);
   const cerrarBuscador = useCallback(() => setBuscadorAbierto(false), []);
 
+  const cerrarTodo = useCallback(() => {
+    setFichaId(null);
+    setBuscadorAbierto(false);
+  }, []);
+
   const valor = useMemo(
     () => ({ fichaId, abrirFicha, cerrarFicha, buscadorAbierto, abrirBuscador, cerrarBuscador }),
     [fichaId, abrirFicha, cerrarFicha, buscadorAbierto, abrirBuscador, cerrarBuscador],
@@ -48,9 +54,21 @@ export function Proveedores({ children }: { children: ReactNode }) {
         {children}
         <FichaModal />
         <Buscador />
+        <Suspense>
+          <CerrarAlNavegar alNavegar={cerrarTodo} />
+        </Suspense>
       </Contexto.Provider>
     </MotionConfig>
   );
+}
+
+/** Al ir a otra página (por ejemplo “Ver ahora”), se cierran la ficha y el buscador. */
+function CerrarAlNavegar({ alNavegar }: { alNavegar: () => void }) {
+  const ruta = usePathname();
+  useEffect(() => {
+    alNavegar();
+  }, [ruta, alNavegar]);
+  return null;
 }
 
 /** “/” abre el buscador, como en muchas plataformas. */
