@@ -11,6 +11,7 @@
     "colores": "node scripts/colores-logo.mjs",
     "portadas-demo": "node scripts/generar-portadas-demo.mjs",
     "agregar-editor": "node --no-warnings --env-file-if-exists=.env.local scripts/agregar-editor.mjs",
+    "migrar-a-supabase": "node --no-warnings --env-file-if-exists=.env.local scripts/migrar-a-supabase.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {
