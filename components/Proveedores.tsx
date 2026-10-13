@@ -3,6 +3,7 @@
 import { MotionConfig } from "motion/react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { FichaModal } from "./FichaModal";
+import { Buscador } from "./Buscador";
 
 type Interfaz = {
   fichaId: string | null;
@@ -46,6 +47,7 @@ export function Proveedores({ children }: { children: ReactNode }) {
       <Contexto.Provider value={valor}>
         {children}
         <FichaModal />
+        <Buscador />
       </Contexto.Provider>
     </MotionConfig>
   );
