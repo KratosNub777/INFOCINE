@@ -26,12 +26,14 @@ Otros comandos útiles:
 | `npm run lint` | Revisa que el código no tenga errores comunes. |
 | `npm run colores` | Lee el escudo de `public/logo/` y confirma los colores + contraste AA. |
 | `npm run portadas-demo` | Vuelve a generar las portadas de ejemplo. |
+| `npm run agregar-editor -- correo` | Fase 2: da permiso de edición a un profesor/a. |
+| `npm run migrar-a-supabase` | Fase 2: copia los cortos de `data/cortos.ts` a Supabase. |
 
 ## 2. Dónde se cambia cada cosa
 
 | Quiero cambiar… | Archivo |
 | --- | --- |
-| Los cortometrajes | `data/cortos.ts` |
+| Los cortometrajes | `data/cortos.ts` (o el panel `/admin` si activaste la fase 2) |
 | Colores, textos, menú, géneros | `config/sitio.ts` |
 | El escudo del colegio | `public/logo/` (ver `LEEME.md` adentro) |
 | Las portadas | `public/portadas/` |
@@ -128,10 +130,15 @@ público, borrá la variable y hacé **Redeploy** otra vez. Para probarlo en tu 
 - Accesibilidad AA, SEO en es-PY (metadata, Open Graph por corto, sitemap, robots) y respeta
   “reducir movimiento”.
 
-## 7. Fase 2 (preparada)
+## 7. Fase 2: panel de profesores, vistas y “me gusta”
 
-Panel para que un profesor cargue cortos sin tocar código (Supabase) y contador de vistas y
-“me gusta”: ver [`docs/fase-2/`](docs/fase-2/README.md).
+Ya está construida y es **opcional**: mientras no la actives, todo sigue funcionando con
+`data/cortos.ts`. Al activarla (Supabase, plan gratuito):
+
+- los profesores cargan y editan cortos desde `/admin`, sin tocar código;
+- cada corto muestra sus vistas y un botón de “me gusta” (contadores anónimos).
+
+Guía paso a paso para activarla y para el uso diario: [`docs/fase-2/`](docs/fase-2/README.md).
 
 ---
 
