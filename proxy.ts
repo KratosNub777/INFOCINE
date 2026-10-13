@@ -1,23 +1,28 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { COOKIE_ACCESO, huellaCodigo } from "@/lib/acceso";
+import { supabaseActivo } from "@/lib/supabase/config";
+import { sesionDelPanel } from "@/lib/supabase/proxy";
 
-/**
- * Código de acceso opcional. Si la variable de entorno CODIGO_ACCESO
- * tiene un valor, se pide ese código antes de entrar. Si está vacía,
- * el sitio es público.
- */
 export async function proxy(request: NextRequest) {
+  // 1. Código de acceso opcional (CODIGO_ACCESO). Vacío = sitio público.
   const codigo = process.env.CODIGO_ACCESO?.trim();
-  if (!codigo) return NextResponse.next();
+  if (codigo) {
+    const cookie = request.cookies.get(COOKIE_ACCESO)?.value;
+    if (cookie !== (await huellaCodigo(codigo))) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/acceso";
+      url.search = "";
+      url.searchParams.set("desde", request.nextUrl.pathname + request.nextUrl.search);
+      return NextResponse.redirect(url);
+    }
+  }
 
-  const cookie = request.cookies.get(COOKIE_ACCESO)?.value;
-  if (cookie && cookie === (await huellaCodigo(codigo))) return NextResponse.next();
+  // 2. Panel de profesores: renovar la sesión y exigir ingreso.
+  if (supabaseActivo && request.nextUrl.pathname.startsWith("/admin")) {
+    return sesionDelPanel(request);
+  }
 
-  const url = request.nextUrl.clone();
-  url.pathname = "/acceso";
-  url.search = "";
-  url.searchParams.set("desde", request.nextUrl.pathname + request.nextUrl.search);
-  return NextResponse.redirect(url);
+  return NextResponse.next();
 }
 
 export const config = {
