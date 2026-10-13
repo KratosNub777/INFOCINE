@@ -38,6 +38,7 @@ export function Proveedores({ children }: { children: ReactNode }) {
   );
 
   useNavegacionEspacial();
+  useAtajoBuscar(abrirBuscador);
 
   return (
     <MotionConfig reducedMotion="user">
@@ -46,6 +47,22 @@ export function Proveedores({ children }: { children: ReactNode }) {
       </Contexto.Provider>
     </MotionConfig>
   );
+}
+
+/** “/” abre el buscador, como en muchas plataformas. */
+function useAtajoBuscar(abrir: () => void) {
+  useEffect(() => {
+    function alPresionar(e: KeyboardEvent) {
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (document.querySelector("dialog[open]")) return;
+      e.preventDefault();
+      abrir();
+    }
+    document.addEventListener("keydown", alPresionar);
+    return () => document.removeEventListener("keydown", alPresionar);
+  }, [abrir]);
 }
 
 /**
