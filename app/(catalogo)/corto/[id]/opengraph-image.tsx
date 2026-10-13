@@ -2,7 +2,6 @@ import { ImageResponse } from "next/og";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { colores, sitio } from "@/config/sitio";
-import { cursoYSeccion } from "@/lib/cortos";
 import { idsDeCortos, obtenerCatalogo } from "@/lib/datos";
 import { TRAZO_RAYO } from "@/components/Logo";
 
@@ -105,7 +104,7 @@ export default async function Imagen({ params }: { params: Promise<{ id: string 
           {corto?.titulo ?? sitio.nombre}
         </div>
         <div style={{ marginTop: 18, fontSize: 30, color: colores.textoSuave, display: "flex" }}>
-          {corto ? `${cursoYSeccion(corto)} · ${corto.anio} · ${sitio.colegio}` : sitio.colegio}
+          {corto ? `${corto.anio} · ${sitio.colegio}` : sitio.colegio}
         </div>
       </div>
       <div

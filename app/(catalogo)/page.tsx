@@ -6,7 +6,6 @@ import { FilaMiLista, FilaSeguirViendo } from "@/components/FilasUsuario";
 
 export default async function Inicio() {
   const catalogo = await obtenerCatalogo();
-  const cursos = catalogo.agruparPorCurso();
   const generos = catalogo.agruparPorGenero().filter((g) => g.cortos.length >= sitio.minimoPorFila);
   const anios = catalogo.agruparPorAnio().filter((g) => g.cortos.length >= sitio.minimoPorFila);
   let i = 0;
@@ -27,15 +26,6 @@ export default async function Inicio() {
         />
         <Fila titulo={textos.filas.premiados} cortos={catalogo.premiados()} variante="v" indice={i++} />
         <FilaMiLista />
-        {cursos.map((g) => (
-          <Fila
-            key={g.clave}
-            titulo={textos.filas.curso(g.titulo)}
-            cortos={g.cortos}
-            verTodo={`/cortometrajes?curso=${encodeURIComponent(g.clave)}`}
-            indice={i++}
-          />
-        ))}
         {generos.map((g) => (
           <Fila
             key={g.clave}

@@ -67,7 +67,7 @@ export const sitio = {
 export const navegacion = [
   { href: "/", etiqueta: "Inicio", icono: "inicio" },
   { href: "/cortometrajes", etiqueta: "Cortometrajes", icono: "cortos" },
-  { href: "/por-curso", etiqueta: "Por curso", icono: "cursos" },
+  { href: "/por-anio", etiqueta: "Por año", icono: "anios" },
   { href: "/mi-lista", etiqueta: "Mi lista", icono: "lista" },
 ] as const;
 
@@ -100,8 +100,8 @@ export const textos = {
   demo: "DEMO",
   destacado: "Destacado",
   buscar: "Buscar",
-  buscarPlaceholder: "Título, curso, género o integrante…",
-  buscarAyuda: "Probá con “3ero 1era”, “documental” o el nombre de alguien del equipo.",
+  buscarPlaceholder: "Título, año, género o integrante…",
+  buscarAyuda: "Probá con “2025”, “documental” o el nombre de alguien del equipo.",
   sinResultados: "No encontramos cortos con esa búsqueda.",
   filtros: "Filtros",
   todos: "Todos",
@@ -113,7 +113,6 @@ export const textos = {
     recientes: "Recién agregados",
     miLista: "Mi lista",
     premiados: "Premiados y destacados por los profesores",
-    curso: (curso: string) => `${curso}`,
     genero: (genero: string) => genero,
     anio: (anio: number) => `Cortos del ${anio}`,
   },
@@ -125,8 +124,6 @@ export const textos = {
     premios: "Premios y reconocimientos",
     anio: "Año",
     duracion: "Duración",
-    curso: "Curso",
-    seccion: "Sección",
     genero: "Género",
     materia: "Materia o proyecto",
     direccion: "Dirección",

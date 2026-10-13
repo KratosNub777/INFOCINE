@@ -12,15 +12,17 @@ Con la fase 2 activada:
 ## Activarla, paso a paso (una sola vez)
 
 ### 1. Crear el proyecto en Supabase
-1. Entrá a [supabase.com](https://supabase.com) → **New project**. Región sugerida: *South America (São Paulo)*.
+
+1. Entrá a [supabase.com](https://supabase.com) → **New project**. Región sugerida: _South America (São Paulo)_.
 2. Abrí **SQL Editor → New query**, pegá todo el archivo
    [`supabase/migrations/20261013180000_infocine.sql`](../../supabase/migrations/20261013180000_infocine.sql)
    y tocá **Run**. Crea las tablas, los permisos y la carpeta de portadas.
 
 ### 2. Configurar el ingreso por e-mail
+
 1. **Authentication → URL Configuration**
-   - *Site URL*: `https://tu-sitio.vercel.app`
-   - *Redirect URLs*: agregá `https://tu-sitio.vercel.app/admin/auth/confirmar`
+   - _Site URL_: `https://tu-sitio.vercel.app`
+   - _Redirect URLs_: agregá `https://tu-sitio.vercel.app/admin/auth/confirmar`
      (y `http://localhost:3000/admin/auth/confirmar` para probar en tu compu).
 2. **Authentication → Emails → SMTP Settings**: el correo que trae Supabase de fábrica solo
    manda unos pocos e-mails por hora y únicamente a los miembros de tu equipo de Supabase.
@@ -31,8 +33,9 @@ Con la fase 2 activada:
    > **Cuerpo:** `<p>Hola, tocá el enlace para entrar al panel de Infocine:</p><p><a href="{{ .ConfirmationURL }}">Entrar al panel</a></p><p>Si no lo pediste, ignorá este correo.</p>`
 
 ### 3. Conectar Infocine
-1. En Supabase: **Project Settings → API Keys**. Copiá la *Project URL*, la *Publishable key*
-   y la *Secret key*.
+
+1. En Supabase: **Project Settings → API Keys**. Copiá la _Project URL_, la _Publishable key_
+   y la _Secret key_.
 2. En Vercel: **Settings → Environment Variables**, agregá:
    - `NEXT_PUBLIC_SUPABASE_URL` = la Project URL
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = la Publishable key
@@ -42,6 +45,7 @@ Con la fase 2 activada:
 > para los dos comandos de abajo.
 
 ### 4. Dar permiso a los profesores
+
 En tu compu, copiá `.env.example` como `.env.local`, completá las tres claves de Supabase y corré:
 
 ```bash
@@ -50,13 +54,16 @@ npm run agregar-editor -- profe@ejemplo.com --quitar # quitar permiso
 ```
 
 ### 5. (Opcional) Pasar los cortos de `data/cortos.ts` a Supabase
+
 ```bash
 npm run migrar-a-supabase                  # solo los cortos reales
 npm run migrar-a-supabase -- --incluir-demo  # también los DEMO
 ```
+
 Sube también las portadas de `public/portadas/`. Necesita Node 22.18 o más nuevo.
 
 ## Uso diario (para profesores)
+
 1. Entrá a `https://tu-sitio.vercel.app/admin` y escribí tu e-mail.
 2. Abrí el enlace que te llega por correo (vale una sola vez).
 3. **Nuevo corto** → completá los datos, subí la portada vertical y la horizontal y pegá el
@@ -65,6 +72,8 @@ Sube también las portadas de `public/portadas/`. Necesita Node 22.18 o más nue
 5. **Guardar**: aparece en Infocine al instante. En la lista ves las vistas y los “me gusta” de cada uno.
 
 ## Cómo está hecho (para quien mantenga el código)
+
+- `supabase/migrations/…_quitar_curso_seccion.sql`: solo si ya habías corrido la primera migración con las columnas `curso` y `seccion` (el catálogo ahora se ordena solo por año). Pegala en el SQL Editor y ejecutala una vez.
 - `supabase/migrations/…_infocine.sql`: tablas `cortos`, `editores` y `estadisticas`, políticas RLS
   (todos leen lo publicado, solo los editores escriben), funciones `registrar_vista` y
   `cambiar_me_gusta`, y el bucket público `portadas`.

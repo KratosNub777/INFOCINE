@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { textos } from "@/config/sitio";
-import { cursoYSeccion, formatoDuracion, type Corto } from "@/lib/cortos";
+import { formatoDuracion, type Corto } from "@/lib/cortos";
 import { useCatalogo } from "./ContextoCatalogo";
 import { useInterfaz } from "./Proveedores";
 import { Portada } from "./Portada";
@@ -12,7 +12,7 @@ import { Icono } from "./Icono";
 
 /**
  * Tarjeta de un corto. Al pasar el mouse (o con foco de teclado) se agranda
- * y muestra título, duración, curso y botones. Tocar/Enter abre la ficha.
+ * y muestra título, duración, año y botones. Tocar/Enter abre la ficha.
  */
 export function Tarjeta({
   corto,
@@ -30,7 +30,7 @@ export function Tarjeta({
   const { abrirFicha } = useInterfaz();
   const { esNuevo } = useCatalogo();
   const vertical = variante === "v";
-  const meta = `${formatoDuracion(corto.duracion)} · ${cursoYSeccion(corto)} · ${corto.anio}`;
+  const meta = `${formatoDuracion(corto.duracion)} · ${corto.anio}`;
   const premiado = corto.premios.length > 0;
 
   return (
@@ -119,7 +119,7 @@ export function Tarjeta({
           <p className="ml-auto truncate text-right text-[0.7rem] leading-tight font-medium text-texto/90">
             {formatoDuracion(corto.duracion)}
             <br />
-            {cursoYSeccion(corto)}
+            {corto.anio}
           </p>
         </div>
       </div>
