@@ -1,26 +1,166 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/*
+ * Los colores se definen en config/sitio.ts y se inyectan como
+ * variables --c-* desde app/layout.tsx. Acá solo se conectan con Tailwind.
+ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-rojo: var(--c-rojo);
+  --color-rojo-hover: var(--c-rojoHover);
+  --color-rojo-texto: var(--c-rojoTexto);
+  --color-azul: var(--c-azul);
+  --color-azul-oscuro: var(--c-azulOscuro);
+  --color-dorado: var(--c-dorado);
+  --color-fondo: var(--c-fondo);
+  --color-superficie: var(--c-superficie);
+  --color-superficie-alta: var(--c-superficieAlta);
+  --color-borde: var(--c-borde);
+  --color-texto: var(--c-texto);
+  --color-texto-suave: var(--c-textoSuave);
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Escala tipográfica fluida */
+@theme {
+  --text-hero: clamp(2.4rem, 1.5rem + 4.6vw, 6.5rem);
+  --text-hero--line-height: 0.92;
+  --text-titulo: clamp(1.8rem, 1.3rem + 2.2vw, 3.4rem);
+  --text-titulo--line-height: 1;
+  --text-subtitulo: clamp(1.15rem, 1rem + 0.7vw, 1.6rem);
+  --text-subtitulo--line-height: 1.15;
+  --text-fila: clamp(1.05rem, 0.95rem + 0.55vw, 1.55rem);
+  --text-fila--line-height: 1.2;
+  --text-cuerpo: clamp(0.95rem, 0.9rem + 0.25vw, 1.15rem);
+  --text-cuerpo--line-height: 1.55;
+
+  --animate-brillo: brillo 1.6s ease-in-out infinite;
+  @keyframes brillo {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
   }
 }
 
+/* Títulos: peso fuerte y condensado (eje de ancho de Archivo). */
+@utility titular {
+  font-weight: 800;
+  font-stretch: 72%;
+  letter-spacing: -0.01em;
+}
+
+@utility sin-barra {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+:root {
+  --gutter: 1rem;
+  --gap: 0.5rem;
+  --por-fila: 1.75;
+  --alto-header: 4rem;
+  color-scheme: dark;
+}
+@media (min-width: 480px) {
+  :root {
+    --por-fila: 2.3;
+  }
+}
+@media (min-width: 768px) {
+  :root {
+    --gutter: 2rem;
+    --por-fila: 3.3;
+    --gap: 0.625rem;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 3rem;
+    --por-fila: 4.3;
+    --alto-header: 4.5rem;
+  }
+}
+@media (min-width: 1400px) {
+  :root {
+    --gutter: 4rem;
+    --por-fila: 5.3;
+  }
+}
+@media (min-width: 1900px) {
+  :root {
+    --por-fila: 6.3;
+  }
+}
+
+/* Pantallas grandes y televisores: todo un poco más grande. */
+@media (min-width: 1900px) {
+  html {
+    font-size: 118.75%;
+  }
+}
+@media (min-width: 2500px) {
+  html {
+    font-size: 150%;
+  }
+}
+
+html {
+  background: var(--c-fondo);
+  -webkit-tap-highlight-color: transparent;
+  scroll-padding-top: calc(var(--alto-header) + 1rem);
+}
+
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--c-fondo);
+  color: var(--c-texto);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Foco bien visible (teclado y control remoto). */
+:focus-visible {
+  outline: 3px solid var(--c-dorado);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.tarjeta-h {
+  flex: none;
+  width: calc((100% - var(--gap) * (var(--por-fila) - 1)) / var(--por-fila));
+}
+.tarjeta-v {
+  flex: none;
+  width: calc((100% - var(--gap) * (var(--por-fila) * 1.75 - 1)) / (var(--por-fila) * 1.75));
+}
+
+dialog {
+  max-width: none;
+  max-height: none;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border: 0;
+}
+dialog::backdrop {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
