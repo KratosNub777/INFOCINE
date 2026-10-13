@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { sitio, textos } from "@/config/sitio";
 import { cursoYSeccion, formatoDuracion, nombreGenero, type Corto } from "@/lib/cortos";
 import { useInterfaz } from "./Proveedores";
@@ -15,21 +15,32 @@ const SUAVE = [0.2, 0.8, 0.2, 1] as const;
 /** Carrusel principal: rota entre los destacados con un fundido suave. */
 export function Hero({ cortos }: { cortos: Corto[] }) {
   const { abrirFicha } = useInterfaz();
-  const reducido = useReducedMotion();
   const [activo, setActivo] = useState(0);
-  const [pausadoUsuario, setPausadoUsuario] = useState<boolean | null>(null);
-  const [enFoco, setEnFoco] = useState(false);
-  // Con “reducir movimiento” arranca en pausa; siempre se puede cambiar con el botón.
-  const pausado = pausadoUsuario ?? Boolean(reducido);
-  const corriendo = !pausado && !enFoco && cortos.length > 1;
+  // Cada cambio (automático o elegido) reinicia el temporizador y la barrita.
+  const [vuelta, setVuelta] = useState(0);
+  const [pausado, setPausado] = useState(false);
+  const [focoTeclado, setFocoTeclado] = useState(false);
+  const pestanaVisible = usePestanaVisible();
+  // No se pausa con el mouse (el hero ocupa casi toda la pantalla): solo con el
+  // botón de pausa, con foco de teclado adentro o con la pestaña oculta.
+  const corriendo = !pausado && !focoTeclado && pestanaVisible && cortos.length > 1;
+
+  function ir(i: number) {
+    setActivo((i + cortos.length) % cortos.length);
+    setVuelta((v) => v + 1);
+  }
 
   useEffect(() => {
     if (!corriendo) return;
-    const t = window.setInterval(() => {
-      if (document.visibilityState === "visible") setActivo((i) => (i + 1) % cortos.length);
+    const t = window.setTimeout(() => {
+      setActivo((i) => (i + 1) % cortos.length);
+      setVuelta((v) => v + 1);
     }, sitio.segundosHero * 1000);
-    return () => window.clearInterval(t);
-  }, [corriendo, cortos.length]);
+    return () => window.clearTimeout(t);
+  }, [corriendo, vuelta, cortos.length]);
+
+  // Deslizar con el dedo en celular
+  const toque = useRef<{ x: number; y: number } | null>(null);
 
   const corto = cortos[activo];
   if (!corto) return null;
@@ -38,12 +49,23 @@ export function Hero({ cortos }: { cortos: Corto[] }) {
     <section
       aria-roledescription="carrusel"
       aria-label="Cortos destacados"
-      className="relative isolate flex h-[78svh] max-h-[60rem] min-h-[32rem] w-full items-end overflow-hidden"
-      onMouseEnter={() => setEnFoco(true)}
-      onMouseLeave={() => setEnFoco(false)}
-      onFocusCapture={() => setEnFoco(true)}
+      className="relative isolate flex h-[78svh] max-h-[60rem] min-h-[32rem] w-full touch-pan-y items-end overflow-hidden"
+      onFocusCapture={(e) => {
+        if ((e.target as HTMLElement).matches(":focus-visible")) setFocoTeclado(true);
+      }}
       onBlurCapture={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node)) setEnFoco(false);
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocoTeclado(false);
+      }}
+      onTouchStart={(e) => {
+        toque.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }}
+      onTouchEnd={(e) => {
+        const inicio = toque.current;
+        toque.current = null;
+        if (!inicio || cortos.length < 2) return;
+        const dx = e.changedTouches[0].clientX - inicio.x;
+        const dy = e.changedTouches[0].clientY - inicio.y;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) ir(activo + (dx < 0 ? 1 : -1));
       }}
     >
       {/* Fondos apilados: solo cambia la opacidad */}
@@ -141,7 +163,7 @@ export function Hero({ cortos }: { cortos: Corto[] }) {
           <div className="mt-6 flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setPausadoUsuario(!pausado)}
+              onClick={() => setPausado(!pausado)}
               aria-label={pausado ? "Reanudar el carrusel" : "Pausar el carrusel"}
               className="grid size-9 place-items-center rounded-full text-texto/80 ring-1 ring-texto/30 transition-colors hover:text-texto hover:ring-texto/70"
             >
@@ -151,7 +173,7 @@ export function Hero({ cortos }: { cortos: Corto[] }) {
               <button
                 key={c.id}
                 type="button"
-                onClick={() => setActivo(i)}
+                onClick={() => ir(i)}
                 aria-label={`Ver destacado ${i + 1}: ${c.titulo}`}
                 aria-current={i === activo ? "true" : undefined}
                 className="group/punto grid h-9 w-10 place-items-center"
@@ -159,7 +181,7 @@ export function Hero({ cortos }: { cortos: Corto[] }) {
                 <span className="relative block h-1 w-full overflow-hidden rounded-full bg-texto/25">
                   {i === activo && (
                     <motion.span
-                      key={`${c.id}-${corriendo}`}
+                      key={`${vuelta}-${corriendo}`}
                       className="absolute inset-0 origin-left bg-texto"
                       initial={{ scaleX: corriendo ? 0 : 1 }}
                       animate={{ scaleX: 1 }}
@@ -176,6 +198,18 @@ export function Hero({ cortos }: { cortos: Corto[] }) {
         )}
       </div>
     </section>
+  );
+}
+
+/** true mientras la pestaña está a la vista (si no, el carrusel espera). */
+function usePestanaVisible() {
+  return useSyncExternalStore(
+    (aviso) => {
+      document.addEventListener("visibilitychange", aviso);
+      return () => document.removeEventListener("visibilitychange", aviso);
+    },
+    () => document.visibilityState === "visible",
+    () => true,
   );
 }
 
