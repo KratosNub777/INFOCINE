@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { textos } from "@/config/sitio";
 import { guardarProgreso, useProgreso } from "@/lib/almacen";
+import { registrarVista } from "@/lib/estadisticas";
 import { cursoYSeccion, formatoDuracion, idYoutube, type Corto } from "@/lib/cortos";
 import { Portada } from "./Portada";
 import { Icono } from "./Icono";
@@ -200,7 +201,11 @@ function VideoYoutube({ corto, video, alTerminar }: { corto: Corto; video: strin
       });
       intervalo = window.setInterval(() => {
         if (jugador && jugador.getPlayerState?.() === 1) {
-          guardarProgreso(corto.id, jugador.getCurrentTime(), jugador.getDuration());
+          const visto = jugador.getCurrentTime();
+          const total = jugador.getDuration();
+          guardarProgreso(corto.id, visto, total);
+          // Cuenta como vista al pasar el 30 % del corto.
+          if (total && visto / total >= 0.3) registrarVista(corto.id);
         }
       }, 4000);
     });
@@ -265,6 +270,7 @@ function ReproductorDemo({ corto, alTerminar }: { corto: Corto; alTerminar: () =
       posicion.current = nuevo;
       setSegundos(nuevo);
       if (nuevo % 2 === 0 || nuevo === total) guardarProgreso(corto.id, nuevo, total);
+      if (nuevo / total >= 0.3) registrarVista(corto.id);
       if (nuevo >= total) {
         setReproduciendo(false);
         terminar.current();
