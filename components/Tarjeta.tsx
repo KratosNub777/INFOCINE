@@ -44,7 +44,7 @@ export function Tarjeta({
           data-nav
           onClick={() => abrirFicha(corto.id)}
           aria-label={`${corto.titulo}${corto.demo ? " (demo)" : ""}${esNuevo(corto) ? ", nuevo" : ""}${premiado ? ", premiado" : ""}. ${meta}. ${textos.masInformacion}`}
-          className={`relative block w-full overflow-hidden rounded-md bg-superficie shadow-lg shadow-black/40 ring-1 ring-white/5 ${vertical ? "aspect-[2/3]" : "aspect-video"}`}
+          className={`relative block w-full overflow-hidden rounded-md bg-superficie shadow-xl shadow-black/60 ring-1 ring-white/10 ${vertical ? "aspect-[2/3]" : "aspect-video"}`}
         >
           <Portada
             src={vertical ? corto.portada : corto.imagenHorizontal}
