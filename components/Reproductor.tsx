@@ -18,7 +18,14 @@ const SALTO = 10;
 const SEGUNDOS_FINAL = 20;
 
 /** Lo que el reproductor de abajo (YouTube o demo) le cuenta a los controles. */
-type Estado = { listo: boolean; reproduciendo: boolean; tiempo: number; total: number; audio: boolean; silenciado: boolean };
+type Estado = {
+  listo: boolean;
+  reproduciendo: boolean;
+  tiempo: number;
+  total: number;
+  audio: boolean;
+  silenciado: boolean;
+};
 /** Lo que los controles le piden al reproductor de abajo. */
 type Mando = { alternar(): void; ir(segundos: number): void; silenciar(): void };
 
@@ -322,41 +329,56 @@ export function Reproductor({ corto, recomendados }: { corto: Corto; recomendado
           </span>
         </div>
 
-        <div className="mt-1 flex items-center gap-0.5 sm:gap-1">
-          <BotonControl
-            nombre={estado.reproduciendo ? "pausa" : "play"}
-            etiqueta={estado.reproduciendo ? "Pausar (K)" : `${textos.reproducir} (K)`}
-            onClick={() => mando.current?.alternar()}
-            grande
-          />
-          <BotonControl nombre="atras10" etiqueta={`Retroceder ${SALTO} segundos (J)`} onClick={() => saltar(-SALTO)} />
-          <BotonControl nombre="adelante10" etiqueta={`Adelantar ${SALTO} segundos (L)`} onClick={() => saltar(SALTO)} />
-          {estado.audio && (
+        {/* Tres zonas: el título queda en el centro real, sin importar cuántos botones haya a los lados. */}
+        <div className="mt-1 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center max-sm:flex max-sm:justify-between">
+          <div className="flex items-center gap-0.5 sm:gap-1">
             <BotonControl
-              nombre={estado.silenciado ? "silencio" : "volumen"}
-              etiqueta={estado.silenciado ? "Activar sonido (M)" : "Silenciar (M)"}
-              onClick={() => mando.current?.silenciar()}
+              nombre={estado.reproduciendo ? "pausa" : "play"}
+              etiqueta={estado.reproduciendo ? "Pausar (K)" : `${textos.reproducir} (K)`}
+              onClick={() => mando.current?.alternar()}
+              grande
             />
-          )}
+            <BotonControl
+              nombre="atras10"
+              etiqueta={`Retroceder ${SALTO} segundos (J)`}
+              onClick={() => saltar(-SALTO)}
+            />
+            <BotonControl
+              nombre="adelante10"
+              etiqueta={`Adelantar ${SALTO} segundos (L)`}
+              onClick={() => saltar(SALTO)}
+            />
+            {estado.audio && (
+              <BotonControl
+                nombre={estado.silenciado ? "silencio" : "volumen"}
+                etiqueta={estado.silenciado ? "Activar sonido (M)" : "Silenciar (M)"}
+                onClick={() => mando.current?.silenciar()}
+              />
+            )}
+          </div>
 
-          <div className="min-w-0 flex-1 px-3 text-center max-sm:hidden">
+          <div className="max-w-[min(36rem,40vw)] min-w-0 px-3 text-center max-sm:hidden">
             <p className="titular truncate text-xl leading-tight tracking-normal text-texto lg:text-2xl">
               {corto.titulo}
             </p>
             <p className="truncate text-xs leading-tight font-semibold tracking-[0.12em] text-texto-suave uppercase tabular-nums [font-stretch:100%] lg:text-sm">
-              {corto.anio} <span aria-hidden="true" className="mx-1.5 text-texto-suave/60">•</span>
+              {corto.anio}{" "}
+              <span aria-hidden="true" className="mx-1.5 text-texto-suave/60">
+                •
+              </span>
               {formatoDuracion(corto.duracion)}
             </p>
           </div>
-          <span className="flex-1 sm:hidden" />
 
-          {fullscreenPropio && (
-            <BotonControl
-              nombre={pantallaCompleta ? "salirPantallaCompleta" : "pantallaCompleta"}
-              etiqueta={pantallaCompleta ? "Salir de pantalla completa (F)" : "Pantalla completa (F)"}
-              onClick={alternarPantallaCompleta}
-            />
-          )}
+          <div className="flex items-center justify-end gap-0.5 sm:gap-1">
+            {fullscreenPropio && (
+              <BotonControl
+                nombre={pantallaCompleta ? "salirPantallaCompleta" : "pantallaCompleta"}
+                etiqueta={pantallaCompleta ? "Salir de pantalla completa (F)" : "Pantalla completa (F)"}
+                onClick={alternarPantallaCompleta}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
