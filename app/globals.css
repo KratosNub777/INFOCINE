@@ -87,12 +87,12 @@
 @media (min-width: 1400px) {
   :root {
     --gutter: 4rem;
-    --por-fila: 5.3;
+    --por-fila: 3.9;
   }
 }
 @media (min-width: 1900px) {
   :root {
-    --por-fila: 6.3;
+    --por-fila: 4.6;
   }
 }
 
