@@ -160,6 +160,43 @@ body {
   width: calc(100% * 0.85 * var(--digitos) / var(--total));
 }
 
+/* Barra de progreso del reproductor: línea fina con punto rojo, como en Netflix. */
+.barra-progreso {
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  --avance: 0%;
+}
+.barra-progreso::-webkit-slider-runnable-track {
+  height: 0.3125rem;
+  border-radius: 9999px;
+  background: linear-gradient(to right, var(--c-rojo) var(--avance), rgba(255, 255, 255, 0.3) 0);
+}
+.barra-progreso::-moz-range-track {
+  height: 0.3125rem;
+  border-radius: 9999px;
+  background: linear-gradient(to right, var(--c-rojo) var(--avance), rgba(255, 255, 255, 0.3) 0);
+}
+.barra-progreso::-webkit-slider-thumb {
+  appearance: none;
+  width: 0.9rem;
+  height: 0.9rem;
+  margin-top: -0.3rem;
+  border-radius: 9999px;
+  background: var(--c-rojo);
+  transition: transform 150ms;
+}
+.barra-progreso::-moz-range-thumb {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--c-rojo);
+}
+.barra-progreso:hover::-webkit-slider-thumb {
+  transform: scale(1.35);
+}
+
 dialog {
   max-width: none;
   max-height: none;
