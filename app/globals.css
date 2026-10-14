@@ -143,8 +143,9 @@ body {
   width: calc((100% - var(--gap) * (var(--k) - 1)) / var(--k));
 }
 .tarjeta-v {
+  --k: calc(min(var(--por-fila), max(var(--n, 99), 2.5)) * 1.75);
   flex: none;
-  width: calc((100% - var(--gap) * (var(--por-fila) * 1.75 - 1)) / (var(--por-fila) * 1.75));
+  width: calc((100% - var(--gap) * (var(--k) - 1)) / var(--k));
 }
 
 /*
