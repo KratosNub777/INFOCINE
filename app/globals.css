@@ -28,7 +28,7 @@
   --text-titulo--line-height: 1;
   --text-subtitulo: clamp(1.15rem, 1rem + 0.7vw, 1.6rem);
   --text-subtitulo--line-height: 1.15;
-  --text-fila: clamp(1.05rem, 0.95rem + 0.55vw, 1.55rem);
+  --text-fila: clamp(1.25rem, 1rem + 0.9vw, 2.1rem);
   --text-fila--line-height: 1.2;
   --text-cuerpo: clamp(0.95rem, 0.9rem + 0.25vw, 1.15rem);
   --text-cuerpo--line-height: 1.55;
