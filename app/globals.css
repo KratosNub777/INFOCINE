@@ -133,9 +133,14 @@ body {
   border-radius: 6px;
 }
 
+/*
+ * --n es la cantidad de cortos de la fila (la pone Fila). Si hay menos de los que caben,
+ * las tarjetas se agrandan para llenar el ancho, con un mínimo de 2,5 en pantallas anchas.
+ */
 .tarjeta-h {
+  --k: min(var(--por-fila), max(var(--n, 99), 2.5));
   flex: none;
-  width: calc((100% - var(--gap) * (var(--por-fila) - 1)) / var(--por-fila));
+  width: calc((100% - var(--gap) * (var(--k) - 1)) / var(--k));
 }
 .tarjeta-v {
   flex: none;
