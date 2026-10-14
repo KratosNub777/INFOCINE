@@ -87,7 +87,7 @@ export function Buscador() {
                     enterKeyHint="search"
                     autoComplete="off"
                     spellCheck={false}
-                    className="h-14 w-full bg-transparent text-lg text-texto placeholder:text-texto-suave/80 focus:outline-none focus-visible:outline-none"
+                    className="h-14 w-full bg-transparent text-lg text-texto placeholder:text-texto-suave/80 focus:outline-none! focus-visible:outline-none!"
                   />
                 </label>
                 <button

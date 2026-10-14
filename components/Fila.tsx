@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import Link from "next/link";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import type { Corto } from "@/lib/cortos";
 import { Tarjeta } from "./Tarjeta";
 import { Icono } from "./Icono";
@@ -21,7 +21,8 @@ export function Fila({
 }: {
   titulo: string;
   cortos: Corto[];
-  variante?: "h" | "v";
+  /** "ranking": portadas verticales con un número grande al costado (Top N). */
+  variante?: "h" | "v" | "ranking";
   progresos?: Record<string, number>;
   verTodo?: string;
   /** Posición de la fila en la página (para escalonar la entrada). */
@@ -85,11 +86,15 @@ export function Fila({
           ref={carril}
           onScroll={medir}
           data-nav-fila
-          className="sin-barra flex snap-x snap-mandatory [&>[data-tarjeta]]:snap-start scroll-px-[var(--gutter)] gap-[var(--gap)] overflow-x-auto overscroll-x-contain px-[var(--gutter)] pt-3 pb-5"
+          className="sin-barra flex snap-x snap-mandatory [&>[data-tarjeta]]:snap-start scroll-px-[var(--gutter)] gap-[var(--gap)] overflow-x-auto overscroll-x-contain px-[var(--gutter)] pt-3 pb-3"
         >
-          {cortos.map((c) => (
-            <Tarjeta key={c.id} corto={c} variante={variante} progreso={progresos?.[c.id]} />
-          ))}
+          {cortos.map((c, i) =>
+            variante === "ranking" ? (
+              <ItemRanking key={c.id} corto={c} puesto={i + 1} />
+            ) : (
+              <Tarjeta key={c.id} corto={c} variante={variante} progreso={progresos?.[c.id]} />
+            ),
+          )}
         </div>
 
         <BotonFlecha lado="izq" visible={puedeIzq} onClick={() => desplazar(-1)} titulo={titulo} />
@@ -98,6 +103,43 @@ export function Fila({
     </motion.section>
   );
 }
+
+/** Portada vertical con el número del puesto detrás, como en un Top 10. */
+function ItemRanking({ corto, puesto }: { corto: Corto; puesto: number }) {
+  const digitos = String(puesto).length;
+  return (
+    <div className="item-ranking relative" data-tarjeta style={{ "--digitos": digitos } as CSSProperties}>
+      <svg
+        aria-hidden="true"
+        className="item-ranking-numero pointer-events-none absolute inset-y-0 left-0 h-full overflow-visible"
+        viewBox={`0 0 ${NUM_ANCHO * digitos} ${NUM_ALTO}`}
+        preserveAspectRatio="xMaxYMax meet"
+      >
+        <text
+          x={NUM_ANCHO * digitos}
+          y={NUM_ALTO}
+          textAnchor="end"
+          className="titular"
+          fontSize={NUM_ALTO * 1.3}
+          fill="var(--c-fondo)"
+          stroke="rgba(255,255,255,0.55)"
+          strokeWidth={5}
+          strokeLinejoin="round"
+          paintOrder="stroke"
+        >
+          {puesto}
+        </text>
+      </svg>
+      <div className="item-ranking-tarjeta absolute inset-y-0 right-0">
+        <Tarjeta corto={corto} variante="v" enGrilla />
+      </div>
+    </div>
+  );
+}
+
+// Medidas del número (unidades relativas a un ancho de portada de 100).
+const NUM_ANCHO = 85;
+const NUM_ALTO = 150;
 
 function BotonFlecha({
   lado,
@@ -116,7 +158,7 @@ function BotonFlecha({
       tabIndex={-1}
       onClick={onClick}
       aria-label={`${lado === "izq" ? "Anteriores" : "Siguientes"} en ${titulo}`}
-      className={`absolute top-3 bottom-5 z-30 hidden w-[calc(var(--gutter)-0.25rem)] place-items-center bg-fondo/60 text-texto opacity-0 transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:grid ${
+      className={`absolute top-3 bottom-3 z-30 hidden w-[calc(var(--gutter)-0.25rem)] place-items-center bg-fondo/60 text-texto opacity-0 transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:grid ${
         lado === "izq" ? "left-0 rounded-r-md" : "right-0 rounded-l-md"
       } ${visible ? "group-hover/fila:opacity-100 hover:bg-fondo/80" : "pointer-events-none"}`}
     >

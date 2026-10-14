@@ -49,7 +49,7 @@ export function Hero({ cortos }: { cortos: Corto[] }) {
     <section
       aria-roledescription="carrusel"
       aria-label="Cortos destacados"
-      className="relative isolate flex h-[78svh] max-h-[60rem] min-h-[32rem] w-full touch-pan-y items-end overflow-hidden"
+      className="relative isolate flex min-h-[clamp(32rem,78svh,60rem)] w-full touch-pan-y items-end overflow-hidden pt-[calc(var(--alto-header)+1.5rem)]"
       onFocusCapture={(e) => {
         if ((e.target as HTMLElement).matches(":focus-visible")) setFocoTeclado(true);
       }}
