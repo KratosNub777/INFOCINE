@@ -3,16 +3,22 @@
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { textos } from "@/config/sitio";
 import { guardarProgreso, useProgreso } from "@/lib/almacen";
 import { registrarVista } from "@/lib/estadisticas";
 import { formatoDuracion, idYoutube, type Corto } from "@/lib/cortos";
 import { Portada } from "./Portada";
-import { Icono } from "./Icono";
+import { Icono, type NombreIcono } from "./Icono";
 import { EtiquetaDemo } from "./Etiquetas";
 
 const SEGUNDOS_BARRA = 3500;
+const SALTO = 10;
+
+/** Lo que el reproductor de abajo (YouTube o demo) le cuenta a los controles. */
+type Estado = { listo: boolean; reproduciendo: boolean; tiempo: number; total: number; audio: boolean; silenciado: boolean };
+/** Lo que los controles le piden al reproductor de abajo. */
+type Mando = { alternar(): void; ir(segundos: number): void; silenciar(): void };
 
 /** El navegador de este equipo permite pasar un elemento a pantalla completa (iPhone no). */
 const sinSuscripcion = () => () => {};
@@ -20,9 +26,9 @@ const fullscreenDisponible = () => document.fullscreenEnabled;
 const sinDatosDelServidor = () => null;
 
 /**
- * Reproductor a pantalla completa, como en Netflix: el video ocupa toda la ventana,
- * la barra de arriba (volver, título, siguiente, pantalla completa) se oculta sola
- * y vuelve al mover el mouse, tocar o acercarse al borde superior.
+ * Reproductor a pantalla completa, como en Netflix: el video ocupa toda la ventana
+ * y los controles (volver arriba; progreso, play, ±10 s, volumen, título, siguiente
+ * y pantalla completa abajo) se ocultan solos y vuelven al mover el mouse o tocar.
  */
 export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Corto }) {
   const router = useRouter();
@@ -31,6 +37,23 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
   const [terminado, setTerminado] = useState(false);
   const [barra, setBarra] = useState(true);
   const [pantallaCompleta, setPantallaCompleta] = useState(false);
+  const [estado, setEstado] = useState<Estado>({
+    listo: false,
+    reproduciendo: false,
+    tiempo: 0,
+    total: corto.duracion * 60,
+    audio: false,
+    silenciado: false,
+  });
+  const mando = useRef<Mando | null>(null);
+  const estadoActual = useRef(estado);
+  useEffect(() => {
+    estadoActual.current = estado;
+  });
+  const actualizar = useCallback((cambios: Partial<Estado>) => setEstado((e) => ({ ...e, ...cambios })), []);
+  const registrar = useCallback((m: Mando | null) => {
+    mando.current = m;
+  }, []);
   const video = idYoutube(corto.youtube);
   // null mientras se hidrata. Si se puede, la pantalla completa la maneja Infocine
   // (así la barra y el “siguiente” siguen disponibles) y se oculta el botón de YouTube.
@@ -47,6 +70,11 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
     else router.push(`/corto/${corto.id}`);
   }
 
+  const saltar = useCallback((delta: number) => {
+    const { tiempo, total } = estadoActual.current;
+    mando.current?.ir(Math.max(0, Math.min(total, tiempo + delta)));
+  }, []);
+
   const alternarPantallaCompleta = useCallback(() => {
     if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
     else void contenedor.current?.requestFullscreen?.({ navigationUI: "hide" })?.catch(() => {});
@@ -58,18 +86,26 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
     return () => window.clearTimeout(temporizador.current);
   }, []);
 
-  // Intenta entrar en pantalla completa al abrir (el navegador solo lo deja si el
-  // clic en “Ver ahora” fue reciente; si no, queda la ventana completa y el botón).
+  // En celulares, al entrar en pantalla completa se acuesta el video (solo Chrome en Android
+  // lo permite, y solo dentro de la pantalla completa); al salir se suelta la orientación.
   useEffect(() => {
     const el = contenedor.current;
-    const alCambiar = () => setPantallaCompleta(document.fullscreenElement === el);
-    document.addEventListener("fullscreenchange", alCambiar);
     const orientacion = screen.orientation as (ScreenOrientation & { lock?: (o: string) => Promise<void> }) | undefined;
-    Promise.resolve(el?.requestFullscreen?.({ navigationUI: "hide" }))
-      .then(() => {
-        if (document.fullscreenElement) return orientacion?.lock?.("landscape"); // celulares: acostar el video
-      })
-      .catch(() => {});
+    const tactil = window.matchMedia("(pointer: coarse)").matches;
+    const alCambiar = () => {
+      const dentro = document.fullscreenElement === el;
+      setPantallaCompleta(dentro);
+      if (!tactil) return;
+      if (dentro) void Promise.resolve(orientacion?.lock?.("landscape")).catch(() => {});
+      else
+        try {
+          orientacion?.unlock?.();
+        } catch {}
+    };
+    document.addEventListener("fullscreenchange", alCambiar);
+    // Intenta entrar al abrir (el navegador solo lo deja si el clic en “Ver ahora” fue
+    // reciente; si no, el primer toque en el video lo hace: ver `tocarVideo`).
+    Promise.resolve(el?.requestFullscreen?.({ navigationUI: "hide" })).catch(() => {});
     return () => {
       document.removeEventListener("fullscreenchange", alCambiar);
       if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
@@ -78,6 +114,14 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
       } catch {}
     };
   }, []);
+
+  // Primer toque en un celular: pantalla completa (y de ahí, horizontal) con el gesto del usuario.
+  function tocarVideo() {
+    if (!document.fullscreenElement && fullscreenPropio && window.matchMedia("(pointer: coarse)").matches) {
+      void contenedor.current?.requestFullscreen?.({ navigationUI: "hide" })?.catch(() => {});
+    }
+    mando.current?.alternar();
+  }
 
   // Escape o “Atrás” del control remoto vuelven a la página anterior; F alterna la pantalla completa.
   useEffect(() => {
@@ -88,36 +132,78 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
         e.preventDefault();
         if (window.history.length > 1) router.back();
         else router.push(`/corto/${corto.id}`);
-      } else if ((e.key === "f" || e.key === "F") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      } else if (e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+      } else if (e.key === "f" || e.key === "F") {
         alternarPantallaCompleta();
+      } else if (e.key === "j" || e.key === "J") {
+        saltar(-SALTO);
+      } else if (e.key === "l" || e.key === "L") {
+        saltar(SALTO);
+      } else if (e.key === "m" || e.key === "M") {
+        mando.current?.silenciar();
+      } else if (e.key === "k" || e.key === "K") {
+        mando.current?.alternar();
       }
     }
     document.addEventListener("keydown", alPresionar);
     return () => document.removeEventListener("keydown", alPresionar);
-  }, [router, corto.id, alternarPantallaCompleta]);
+  }, [router, corto.id, alternarPantallaCompleta, saltar]);
+
+  // En pausa los controles se quedan a la vista.
+  const controlesVisibles = barra || !estado.reproduciendo;
 
   return (
     <div
       ref={contenedor}
-      className="fixed inset-0 z-50 overflow-hidden bg-black"
+      data-fs={pantallaCompleta ? "" : undefined}
+      className="reproductor fixed inset-0 z-50 overflow-hidden bg-black [container-type:size]"
       onPointerMove={mostrarBarra}
       onPointerDown={mostrarBarra}
       onKeyDown={mostrarBarra}
     >
       <div className="absolute inset-0 grid place-items-center">
-        <div className="relative aspect-video w-[min(100vw,calc(100svh*16/9))] bg-superficie">
+        <div className="relative aspect-video w-[min(100cqw,calc(100cqh*16/9))] bg-superficie">
           {video ? (
             fullscreenPropio !== null && (
               <VideoYoutube
                 corto={corto}
                 video={video}
-                botonYoutube={!fullscreenPropio}
+                registrar={registrar}
+                alEstado={actualizar}
                 alTerminar={() => setTerminado(true)}
               />
             )
           ) : (
-            <ReproductorDemo corto={corto} alTerminar={() => setTerminado(true)} />
+            <ReproductorDemo
+              corto={corto}
+              registrar={registrar}
+              alEstado={actualizar}
+              alTerminar={() => setTerminado(true)}
+            />
           )}
+          {/* Capa sobre el video: clic = play/pausa, doble clic = pantalla completa (el iframe no recibe clics). */}
+          <button
+            type="button"
+            data-nav
+            autoFocus
+            onClick={tocarVideo}
+            onDoubleClick={() => fullscreenPropio && alternarPantallaCompleta()}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                e.preventDefault();
+                saltar(e.key === "ArrowLeft" ? -SALTO : SALTO);
+              }
+            }}
+            aria-label={estado.reproduciendo ? "Pausar" : textos.reproducir}
+            className="absolute inset-0 z-[5] grid cursor-default place-items-center outline-none!"
+          >
+            {estado.listo && !estado.reproduciendo && (
+              <span className="grid size-16 place-items-center rounded-full bg-black/55 text-white ring-1 ring-white/30 sm:size-20">
+                <Icono nombre="play" className="size-8 translate-x-0.5 sm:size-10" />
+              </span>
+            )}
+          </button>
           <AnimatePresence>
             {terminado && siguiente && (
               <motion.div
@@ -153,18 +239,16 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
           </AnimatePresence>
         </div>
         {corto.demo && (
-          <p className="absolute inset-x-0 bottom-6 hidden px-6 text-center text-sm text-texto-suave portrait:max-sm:block">
+          <p className="absolute inset-x-0 top-20 hidden px-6 text-center text-sm text-texto-suave portrait:max-sm:block">
             {textos.demoAviso}
           </p>
         )}
       </div>
 
-      {/* El iframe de YouTube se queda con los eventos del mouse: esta franja los recibe y trae la barra. */}
-      <div aria-hidden="true" className="absolute inset-x-0 top-0 z-20 h-20" onPointerEnter={mostrarBarra} />
-
+      {/* Arriba: solo volver (y la etiqueta DEMO) */}
       <div
-        className={`absolute inset-x-0 top-0 z-30 flex items-center gap-2 bg-gradient-to-b from-black/85 via-black/40 to-transparent px-[var(--gutter)] pt-3 pb-10 transition-opacity duration-300 sm:gap-3 ${
-          barra
+        className={`absolute inset-x-0 top-0 z-30 flex items-center gap-3 bg-gradient-to-b from-black/80 to-transparent px-[var(--gutter)] pt-3 pb-12 transition-opacity duration-300 ${
+          controlesVisibles
             ? "opacity-100"
             : "pointer-events-none opacity-0 focus-within:pointer-events-auto focus-within:opacity-100"
         }`}
@@ -173,45 +257,119 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
           type="button"
           data-nav
           onClick={volver}
-          className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3 font-semibold text-texto transition-colors hover:bg-white/10"
+          aria-label={textos.volver}
+          title={textos.volver}
+          className="inline-flex size-11 items-center justify-center rounded-full text-texto transition-colors hover:bg-white/10"
         >
-          <Icono nombre="volver" className="size-6" />
-          <span className="max-sm:sr-only">{textos.volver}</span>
+          <Icono nombre="volver" className="size-7" />
         </button>
-        <div className="min-w-0">
-          <h1 className="titular truncate text-subtitulo text-texto">{corto.titulo}</h1>
-          <p className="truncate text-xs text-texto-suave">
-            {corto.anio} · {formatoDuracion(corto.duracion)}
-          </p>
+        {corto.demo && <EtiquetaDemo className="ml-auto" />}
+      </div>
+
+      {/* Abajo: progreso y controles */}
+      <div
+        className={`absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-[var(--gutter)] pt-16 pb-3 transition-opacity duration-300 sm:pb-5 ${
+          controlesVisibles
+            ? "opacity-100"
+            : "pointer-events-none opacity-0 focus-within:pointer-events-auto focus-within:opacity-100"
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <label className="sr-only" htmlFor="tiempo">
+            Posición de la reproducción
+          </label>
+          <input
+            id="tiempo"
+            type="range"
+            min={0}
+            max={estado.total || 1}
+            step={1}
+            value={Math.min(estado.tiempo, estado.total || 1)}
+            onChange={(e) => mando.current?.ir(Number(e.target.value))}
+            className="barra-progreso h-5 min-w-0 flex-1"
+            style={{ "--avance": `${estado.total ? (estado.tiempo / estado.total) * 100 : 0}%` } as CSSProperties}
+          />
+          <span className="w-12 shrink-0 text-right text-sm font-medium text-texto tabular-nums">
+            {formatoTiempo(Math.max(0, estado.total - estado.tiempo))}
+          </span>
         </div>
-        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
-          {corto.demo && <EtiquetaDemo className="mr-1" />}
+
+        <div className="mt-1 flex items-center gap-0.5 sm:gap-1">
+          <BotonControl
+            nombre={estado.reproduciendo ? "pausa" : "play"}
+            etiqueta={estado.reproduciendo ? "Pausar (K)" : `${textos.reproducir} (K)`}
+            onClick={() => mando.current?.alternar()}
+            grande
+          />
+          <BotonControl nombre="atras10" etiqueta={`Retroceder ${SALTO} segundos (J)`} onClick={() => saltar(-SALTO)} />
+          <BotonControl nombre="adelante10" etiqueta={`Adelantar ${SALTO} segundos (L)`} onClick={() => saltar(SALTO)} />
+          {estado.audio && (
+            <BotonControl
+              nombre={estado.silenciado ? "silencio" : "volumen"}
+              etiqueta={estado.silenciado ? "Activar sonido (M)" : "Silenciar (M)"}
+              onClick={() => mando.current?.silenciar()}
+            />
+          )}
+
+          <p className="titular min-w-0 flex-1 truncate px-3 text-center text-base text-texto max-sm:hidden">
+            {corto.titulo}
+            <span className="ml-2 text-sm font-medium text-texto-suave">
+              {corto.anio} · {formatoDuracion(corto.duracion)}
+            </span>
+          </p>
+          <span className="flex-1 sm:hidden" />
+
           {siguiente && (
             <Link
               href={`/ver/${siguiente.id}`}
               data-nav
+              aria-label={`${textos.siguiente}: ${siguiente.titulo}`}
               title={`${textos.siguiente}: ${siguiente.titulo}`}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full px-3 font-semibold text-texto transition-colors hover:bg-white/10"
+              className="inline-flex size-11 items-center justify-center rounded-full text-texto transition-colors hover:bg-white/10 sm:size-12"
             >
-              <Icono nombre="siguiente" className="size-5" />
-              <span className="max-md:sr-only">{textos.siguiente}</span>
+              <Icono nombre="siguiente" className="size-6 sm:size-7" />
             </Link>
           )}
           {fullscreenPropio && (
-            <button
-              type="button"
-              data-nav
+            <BotonControl
+              nombre={pantallaCompleta ? "salirPantallaCompleta" : "pantallaCompleta"}
+              etiqueta={pantallaCompleta ? "Salir de pantalla completa (F)" : "Pantalla completa (F)"}
               onClick={alternarPantallaCompleta}
-              aria-label={pantallaCompleta ? "Salir de pantalla completa" : "Pantalla completa"}
-              title={pantallaCompleta ? "Salir de pantalla completa (F)" : "Pantalla completa (F)"}
-              className="inline-flex size-11 items-center justify-center rounded-full text-texto transition-colors hover:bg-white/10"
-            >
-              <Icono nombre={pantallaCompleta ? "salirPantallaCompleta" : "pantallaCompleta"} className="size-6" />
-            </button>
+            />
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+function formatoTiempo(s: number) {
+  const m = Math.floor(s / 60);
+  return `${m}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+}
+
+function BotonControl({
+  nombre,
+  etiqueta,
+  onClick,
+  grande = false,
+}: {
+  nombre: NombreIcono;
+  etiqueta: string;
+  onClick: () => void;
+  grande?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      data-nav
+      onClick={onClick}
+      aria-label={etiqueta}
+      title={etiqueta}
+      className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-texto transition-[background-color,transform] hover:bg-white/10 active:scale-90 sm:size-12"
+    >
+      <Icono nombre={nombre} className={grande ? "size-7 sm:size-8" : "size-6 sm:size-7"} />
+    </button>
   );
 }
 
@@ -222,6 +380,11 @@ type JugadorYT = {
   getDuration(): number;
   getPlayerState(): number;
   seekTo(segundos: number, permitir: boolean): void;
+  playVideo(): void;
+  pauseVideo(): void;
+  mute(): void;
+  unMute(): void;
+  isMuted(): boolean;
   destroy(): void;
 };
 type ApiYT = {
@@ -259,13 +422,14 @@ function cargarApiYoutube(): Promise<ApiYT> {
 function VideoYoutube({
   corto,
   video,
-  botonYoutube,
+  registrar,
+  alEstado,
   alTerminar,
 }: {
   corto: Corto;
   video: string;
-  /** Muestra el botón de pantalla completa de YouTube (solo si Infocine no puede manejarla). */
-  botonYoutube: boolean;
+  registrar: (mando: Mando | null) => void;
+  alEstado: (cambios: Partial<Estado>) => void;
   alTerminar: () => void;
 }) {
   const marco = useRef<HTMLIFrameElement>(null);
@@ -281,6 +445,7 @@ function VideoYoutube({
   useEffect(() => {
     let jugador: JugadorYT | null = null;
     let intervalo = 0;
+    let intervaloBarra = 0;
     let cancelado = false;
     cargarApiYoutube().then((YT) => {
       if (cancelado || !marco.current) return;
@@ -289,8 +454,23 @@ function VideoYoutube({
           onReady: (e) => {
             const desde = guardado.current;
             if (desde > 5 && desde < e.target.getDuration() - 10) e.target.seekTo(desde, true);
+            registrar({
+              alternar: () => (e.target.getPlayerState() === 1 ? e.target.pauseVideo() : e.target.playVideo()),
+              ir: (segundos) => {
+                e.target.seekTo(segundos, true);
+                alEstado({ tiempo: segundos });
+              },
+              silenciar: () => {
+                if (e.target.isMuted()) e.target.unMute();
+                else e.target.mute();
+                alEstado({ silenciado: e.target.isMuted() });
+              },
+            });
+            alEstado({ listo: true, audio: true, total: e.target.getDuration(), silenciado: e.target.isMuted() });
           },
           onStateChange: (e) => {
+            if (e.data === 1) alEstado({ reproduciendo: true });
+            else if (e.data === 2 || e.data === 0) alEstado({ reproduciendo: false });
             if (e.data === 0) {
               guardarProgreso(corto.id, 1, 1); // visto completo: sale de “Seguir viendo”
               terminar.current();
@@ -307,13 +487,20 @@ function VideoYoutube({
           if (total && visto / total >= 0.3) registrarVista(corto.id);
         }
       }, 4000);
+      // Posición para la barra de progreso.
+      intervaloBarra = window.setInterval(() => {
+        if (!jugador?.getDuration) return;
+        alEstado({ tiempo: jugador.getCurrentTime(), total: jugador.getDuration() });
+      }, 500);
     });
     return () => {
       cancelado = true;
       window.clearInterval(intervalo);
+      window.clearInterval(intervaloBarra);
+      registrar(null);
       jugador?.destroy?.();
     };
-  }, [corto.id, video]);
+  }, [corto.id, video, registrar, alEstado]);
 
   // youtube-nocookie + rel=0: sin cookies de seguimiento hasta reproducir y
   // sin recomendaciones de otros canales. cc_load_policy=1 activa subtítulos si existen.
@@ -327,7 +514,9 @@ function VideoYoutube({
     hl: "es",
     enablejsapi: "1",
     autoplay: "1",
-    fs: botonYoutube ? "1" : "0",
+    controls: "0", // los controles son los de Infocine
+    fs: "0",
+    disablekb: "1",
   });
 
   return (
@@ -345,12 +534,17 @@ function VideoYoutube({
 
 /* ───────────── Reproductor DEMO (sin video real) ───────────── */
 
-function formatoTiempo(s: number) {
-  const m = Math.floor(s / 60);
-  return `${m}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
-}
-
-function ReproductorDemo({ corto, alTerminar }: { corto: Corto; alTerminar: () => void }) {
+function ReproductorDemo({
+  corto,
+  registrar,
+  alEstado,
+  alTerminar,
+}: {
+  corto: Corto;
+  registrar: (mando: Mando | null) => void;
+  alEstado: (cambios: Partial<Estado>) => void;
+  alTerminar: () => void;
+}) {
   const total = corto.duracion * 60;
   const progresos = useProgreso();
   const guardado = progresos[corto.id]?.segundos ?? 0;
@@ -389,6 +583,22 @@ function ReproductorDemo({ corto, alTerminar }: { corto: Corto; alTerminar: () =
     setReproduciendo((r) => !r);
   }
 
+  // Los controles de Reproductor mandan sobre este “video”.
+  useEffect(() => {
+    registrar({
+      alternar,
+      ir: (v) => {
+        mover(v);
+        guardarProgreso(corto.id, v, total);
+      },
+      silenciar: () => {},
+    });
+  });
+  useEffect(() => () => registrar(null), [registrar]);
+  useEffect(() => {
+    alEstado({ listo: true, reproduciendo, tiempo: actual, total });
+  }, [alEstado, reproduciendo, actual, total]);
+
   return (
     <div className="absolute inset-0">
       <Portada src={corto.imagenHorizontal} alt={`Imagen de ${corto.titulo}`} sizes="100vw" prioridad />
@@ -396,50 +606,6 @@ function ReproductorDemo({ corto, alTerminar }: { corto: Corto; alTerminar: () =
       <p className="absolute inset-x-0 top-24 hidden bg-black/60 px-4 py-2 text-center text-sm text-texto sm:block">
         Reproductor de demostración: {textos.demoAviso}
       </p>
-      <button
-        type="button"
-        data-nav
-        autoFocus
-        onClick={alternar}
-        onKeyDown={(e) => {
-          if (e.key === " ") {
-            e.preventDefault();
-            alternar();
-          }
-        }}
-        aria-label={
-          reproduciendo ? "Pausar" : actual > 0 ? `Reanudar desde ${formatoTiempo(actual)}` : textos.reproducir
-        }
-        className="absolute top-1/2 left-1/2 grid size-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-rojo text-white shadow-2xl shadow-black/60 transition-transform hover:scale-105 active:scale-95 sm:size-20 lg:size-24"
-      >
-        <Icono nombre={reproduciendo ? "pausa" : "play"} className="size-7 sm:size-9 lg:size-10" />
-      </button>
-      <div className="absolute inset-x-0 bottom-0 px-3 pb-1.5 sm:p-5">
-        <label className="sr-only" htmlFor="tiempo-demo">
-          Posición de la reproducción
-        </label>
-        <input
-          id="tiempo-demo"
-          type="range"
-          min={0}
-          max={total}
-          step={1}
-          value={actual}
-          onChange={(e) => {
-            const v = Number(e.target.value);
-            mover(v);
-            guardarProgreso(corto.id, v, total);
-          }}
-          className="h-2 w-full cursor-pointer appearance-none rounded-full bg-white/25 accent-rojo"
-          style={{
-            background: `linear-gradient(to right, var(--c-rojo) ${(actual / total) * 100}%, rgba(255,255,255,0.25) 0)`,
-          }}
-        />
-        <div className="mt-1 flex justify-between text-xs sm:mt-2 font-medium text-texto/90 tabular-nums">
-          <span>{formatoTiempo(actual)}</span>
-          <span>{formatoTiempo(total)}</span>
-        </div>
-      </div>
     </div>
   );
 }

@@ -160,6 +160,59 @@ body {
   width: calc(100% * 0.85 * var(--digitos) / var(--total));
 }
 
+/* Barra de progreso del reproductor: línea fina con punto rojo, como en Netflix. */
+.barra-progreso {
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  --avance: 0%;
+}
+.barra-progreso::-webkit-slider-runnable-track {
+  height: 0.3125rem;
+  border-radius: 9999px;
+  background: linear-gradient(to right, var(--c-rojo) var(--avance), rgba(255, 255, 255, 0.3) 0);
+}
+.barra-progreso::-moz-range-track {
+  height: 0.3125rem;
+  border-radius: 9999px;
+  background: linear-gradient(to right, var(--c-rojo) var(--avance), rgba(255, 255, 255, 0.3) 0);
+}
+.barra-progreso::-webkit-slider-thumb {
+  appearance: none;
+  width: 0.9rem;
+  height: 0.9rem;
+  margin-top: -0.3rem;
+  border-radius: 9999px;
+  background: var(--c-rojo);
+  transition: transform 150ms;
+}
+.barra-progreso::-moz-range-thumb {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--c-rojo);
+}
+.barra-progreso:hover::-webkit-slider-thumb {
+  transform: scale(1.35);
+}
+
+/*
+ * Celular en vertical sin pantalla completa (p. ej. iPhone, que no la permite ni deja
+ * bloquear la orientación): el reproductor se gira 90° para verse horizontal.
+ */
+@media (orientation: portrait) and (pointer: coarse) and (max-width: 820px) {
+  .reproductor:not([data-fs]) {
+    inset: auto;
+    top: 0;
+    left: 0;
+    width: 100svh;
+    height: 100svw;
+    transform-origin: top left;
+    transform: translateX(100svw) rotate(90deg);
+  }
+}
+
 dialog {
   max-width: none;
   max-height: none;

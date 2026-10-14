@@ -57,6 +57,34 @@ const trazos = {
   salirPantallaCompleta: <path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" />,
   volver: <path d="M19 12H5m6-7-7 7 7 7" />,
   siguiente: <path d="M5 5v14l10-7zM19 5v14" />,
+  atras10: (
+    <>
+      <path d="M4 4v5h5M4.6 9A8.5 8.5 0 1 1 3.6 13" />
+      <text x="12" y="16" textAnchor="middle" fontSize="8" fontWeight="700" fill="currentColor" stroke="none">
+        10
+      </text>
+    </>
+  ),
+  adelante10: (
+    <>
+      <path d="M20 4v5h-5M19.4 9A8.5 8.5 0 1 0 20.4 13" />
+      <text x="12" y="16" textAnchor="middle" fontSize="8" fontWeight="700" fill="currentColor" stroke="none">
+        10
+      </text>
+    </>
+  ),
+  volumen: (
+    <>
+      <path d="M4 9.5v5h3.5l4.5 4v-13l-4.5 4z" fill="currentColor" />
+      <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" />
+    </>
+  ),
+  silencio: (
+    <>
+      <path d="M4 9.5v5h3.5l4.5 4v-13l-4.5 4z" fill="currentColor" />
+      <path d="m16 9.5 5 5M21 9.5l-5 5" />
+    </>
+  ),
   reloj: (
     <>
       <circle cx="12" cy="12" r="9" />
