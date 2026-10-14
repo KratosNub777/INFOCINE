@@ -73,14 +73,14 @@
 @media (min-width: 768px) {
   :root {
     --gutter: 2rem;
-    --por-fila: 3.3;
+    --por-fila: 2.7;
     --gap: 0.625rem;
   }
 }
 @media (min-width: 1024px) {
   :root {
     --gutter: 3rem;
-    --por-fila: 4.3;
+    --por-fila: 3.3;
     --alto-header: 4.5rem;
   }
 }
