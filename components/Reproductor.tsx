@@ -311,12 +311,15 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
             />
           )}
 
-          <p className="titular min-w-0 flex-1 truncate px-3 text-center text-base text-texto max-sm:hidden">
-            {corto.titulo}
-            <span className="ml-2 text-sm font-medium text-texto-suave">
-              {corto.anio} · {formatoDuracion(corto.duracion)}
-            </span>
-          </p>
+          <div className="min-w-0 flex-1 px-3 text-center max-sm:hidden">
+            <p className="titular truncate text-xl leading-tight tracking-normal text-texto lg:text-2xl">
+              {corto.titulo}
+            </p>
+            <p className="truncate text-xs leading-tight font-semibold tracking-[0.12em] text-texto-suave uppercase tabular-nums [font-stretch:100%] lg:text-sm">
+              {corto.anio} <span aria-hidden="true" className="mx-1.5 text-texto-suave/60">•</span>
+              {formatoDuracion(corto.duracion)}
+            </p>
+          </div>
           <span className="flex-1 sm:hidden" />
 
           {siguiente && (
