@@ -91,7 +91,7 @@ export function Tarjeta({
           } ${vertical ? "opacity-0 group-hover/tarjeta:opacity-100 group-has-[:focus-visible]/tarjeta:opacity-100" : ""} group-hover/tarjeta:-translate-y-[3.1rem] group-has-[:focus-visible]/tarjeta:-translate-y-[3.1rem]`}
           aria-hidden="true"
         >
-          <p className="titular line-clamp-2 text-[clamp(0.95rem,0.85rem+0.4vw,1.25rem)] leading-tight text-texto drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+          <p className="titular line-clamp-2 text-[clamp(1.05rem,0.9rem+0.6vw,1.85rem)] leading-tight text-texto drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
             {corto.titulo}
           </p>
         </div>
