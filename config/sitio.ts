@@ -107,6 +107,7 @@ export const textos = {
   todos: "Todos",
   volver: "Volver",
   siguiente: "Siguiente corto",
+  recomendados: "Cortos recomendados",
   cerrar: "Cerrar",
   filas: {
     seguirViendo: "Seguir viendo",
