@@ -86,18 +86,26 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
     return () => window.clearTimeout(temporizador.current);
   }, []);
 
-  // Intenta entrar en pantalla completa al abrir (el navegador solo lo deja si el
-  // clic en “Ver ahora” fue reciente; si no, queda la ventana completa y el botón).
+  // En celulares, al entrar en pantalla completa se acuesta el video (solo Chrome en Android
+  // lo permite, y solo dentro de la pantalla completa); al salir se suelta la orientación.
   useEffect(() => {
     const el = contenedor.current;
-    const alCambiar = () => setPantallaCompleta(document.fullscreenElement === el);
-    document.addEventListener("fullscreenchange", alCambiar);
     const orientacion = screen.orientation as (ScreenOrientation & { lock?: (o: string) => Promise<void> }) | undefined;
-    Promise.resolve(el?.requestFullscreen?.({ navigationUI: "hide" }))
-      .then(() => {
-        if (document.fullscreenElement) return orientacion?.lock?.("landscape"); // celulares: acostar el video
-      })
-      .catch(() => {});
+    const tactil = window.matchMedia("(pointer: coarse)").matches;
+    const alCambiar = () => {
+      const dentro = document.fullscreenElement === el;
+      setPantallaCompleta(dentro);
+      if (!tactil) return;
+      if (dentro) void Promise.resolve(orientacion?.lock?.("landscape")).catch(() => {});
+      else
+        try {
+          orientacion?.unlock?.();
+        } catch {}
+    };
+    document.addEventListener("fullscreenchange", alCambiar);
+    // Intenta entrar al abrir (el navegador solo lo deja si el clic en “Ver ahora” fue
+    // reciente; si no, el primer toque en el video lo hace: ver `tocarVideo`).
+    Promise.resolve(el?.requestFullscreen?.({ navigationUI: "hide" })).catch(() => {});
     return () => {
       document.removeEventListener("fullscreenchange", alCambiar);
       if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
@@ -106,6 +114,14 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
       } catch {}
     };
   }, []);
+
+  // Primer toque en un celular: pantalla completa (y de ahí, horizontal) con el gesto del usuario.
+  function tocarVideo() {
+    if (!document.fullscreenElement && fullscreenPropio && window.matchMedia("(pointer: coarse)").matches) {
+      void contenedor.current?.requestFullscreen?.({ navigationUI: "hide" })?.catch(() => {});
+    }
+    mando.current?.alternar();
+  }
 
   // Escape o “Atrás” del control remoto vuelven a la página anterior; F alterna la pantalla completa.
   useEffect(() => {
@@ -140,13 +156,14 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
   return (
     <div
       ref={contenedor}
-      className="fixed inset-0 z-50 overflow-hidden bg-black"
+      data-fs={pantallaCompleta ? "" : undefined}
+      className="reproductor fixed inset-0 z-50 overflow-hidden bg-black [container-type:size]"
       onPointerMove={mostrarBarra}
       onPointerDown={mostrarBarra}
       onKeyDown={mostrarBarra}
     >
       <div className="absolute inset-0 grid place-items-center">
-        <div className="relative aspect-video w-[min(100vw,calc(100svh*16/9))] bg-superficie">
+        <div className="relative aspect-video w-[min(100cqw,calc(100cqh*16/9))] bg-superficie">
           {video ? (
             fullscreenPropio !== null && (
               <VideoYoutube
@@ -170,7 +187,7 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
             type="button"
             data-nav
             autoFocus
-            onClick={() => mando.current?.alternar()}
+            onClick={tocarVideo}
             onDoubleClick={() => fullscreenPropio && alternarPantallaCompleta()}
             onKeyDown={(e) => {
               if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
@@ -179,7 +196,7 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
               }
             }}
             aria-label={estado.reproduciendo ? "Pausar" : textos.reproducir}
-            className="absolute inset-0 z-[5] grid cursor-default place-items-center focus-visible:outline-offset-[-6px]"
+            className="absolute inset-0 z-[5] grid cursor-default place-items-center outline-none!"
           >
             {estado.listo && !estado.reproduciendo && (
               <span className="grid size-16 place-items-center rounded-full bg-black/55 text-white ring-1 ring-white/30 sm:size-20">
