@@ -24,7 +24,7 @@ export default async function Inicio() {
           verTodo="/cortometrajes"
           indice={i++}
         />
-        <Fila titulo={textos.filas.premiados} cortos={catalogo.premiados()} variante="v" indice={i++} />
+        <Fila titulo={textos.filas.premiados} cortos={catalogo.premiados().slice(0, 10)} variante="ranking" indice={i++} />
         <FilaMiLista />
         {generos.map((g) => (
           <Fila
