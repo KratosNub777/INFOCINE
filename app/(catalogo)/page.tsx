@@ -16,7 +16,7 @@ export default async function Inicio() {
         {sitio.nombre}: cortometrajes del {sitio.colegio}, {sitio.ciudad}
       </h1>
       <Hero cortos={catalogo.destacados()} />
-      <div className="relative z-10 -mt-[clamp(1.5rem,5vh,4rem)] space-y-[clamp(1.25rem,3vw,2.75rem)]">
+      <div className="relative z-10 -mt-[clamp(1.5rem,5vh,4rem)] space-y-[clamp(0.75rem,2vw,1.75rem)]">
         <FilaSeguirViendo />
         <Fila
           titulo={textos.filas.recientes}

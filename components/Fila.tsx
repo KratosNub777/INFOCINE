@@ -86,7 +86,7 @@ export function Fila({
           ref={carril}
           onScroll={medir}
           data-nav-fila
-          className="sin-barra flex snap-x snap-mandatory [&>[data-tarjeta]]:snap-start scroll-px-[var(--gutter)] gap-[var(--gap)] overflow-x-auto overscroll-x-contain px-[var(--gutter)] pt-3 pb-5"
+          className="sin-barra flex snap-x snap-mandatory [&>[data-tarjeta]]:snap-start scroll-px-[var(--gutter)] gap-[var(--gap)] overflow-x-auto overscroll-x-contain px-[var(--gutter)] pt-3 pb-3"
         >
           {cortos.map((c, i) =>
             variante === "ranking" ? (
@@ -158,7 +158,7 @@ function BotonFlecha({
       tabIndex={-1}
       onClick={onClick}
       aria-label={`${lado === "izq" ? "Anteriores" : "Siguientes"} en ${titulo}`}
-      className={`absolute top-3 bottom-5 z-30 hidden w-[calc(var(--gutter)-0.25rem)] place-items-center bg-fondo/60 text-texto opacity-0 transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:grid ${
+      className={`absolute top-3 bottom-3 z-30 hidden w-[calc(var(--gutter)-0.25rem)] place-items-center bg-fondo/60 text-texto opacity-0 transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:grid ${
         lado === "izq" ? "left-0 rounded-r-md" : "right-0 rounded-l-md"
       } ${visible ? "group-hover/fila:opacity-100 hover:bg-fondo/80" : "pointer-events-none"}`}
     >
