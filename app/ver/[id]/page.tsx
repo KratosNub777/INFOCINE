@@ -22,5 +22,5 @@ export default async function PaginaVer({ params }: PageProps<"/ver/[id]">) {
   const catalogo = await obtenerCatalogo();
   const corto = catalogo.porId(id);
   if (!corto) notFound();
-  return <Reproductor corto={corto} siguiente={catalogo.siguiente(corto)} />;
+  return <Reproductor corto={corto} recomendados={catalogo.recomendados(corto)} />;
 }

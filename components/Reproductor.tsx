@@ -14,6 +14,8 @@ import { EtiquetaDemo } from "./Etiquetas";
 
 const SEGUNDOS_BARRA = 3500;
 const SALTO = 10;
+/** Segundos finales en los que aparece el panel de cortos recomendados. */
+const SEGUNDOS_FINAL = 20;
 
 /** Lo que el reproductor de abajo (YouTube o demo) le cuenta a los controles. */
 type Estado = { listo: boolean; reproduciendo: boolean; tiempo: number; total: number; audio: boolean; silenciado: boolean };
@@ -27,14 +29,14 @@ const sinDatosDelServidor = () => null;
 
 /**
  * Reproductor a pantalla completa, como en Netflix: el video ocupa toda la ventana
- * y los controles (volver arriba; progreso, play, ±10 s, volumen, título, siguiente
+ * y los controles (volver arriba; progreso, play, ±10 s, volumen, título
  * y pantalla completa abajo) se ocultan solos y vuelven al mover el mouse o tocar.
  */
-export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Corto }) {
+export function Reproductor({ corto, recomendados }: { corto: Corto; recomendados: Corto[] }) {
   const router = useRouter();
   const contenedor = useRef<HTMLDivElement>(null);
   const temporizador = useRef(0);
-  const [terminado, setTerminado] = useState(false);
+  const [panelCerrado, setPanelCerrado] = useState(false);
   const [barra, setBarra] = useState(true);
   const [pantallaCompleta, setPantallaCompleta] = useState(false);
   const [estado, setEstado] = useState<Estado>({
@@ -56,7 +58,7 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
   }, []);
   const video = idYoutube(corto.youtube);
   // null mientras se hidrata. Si se puede, la pantalla completa la maneja Infocine
-  // (así la barra y el “siguiente” siguen disponibles) y se oculta el botón de YouTube.
+  // (así la barra y los recomendados siguen disponibles) y se oculta el botón de YouTube.
   const fullscreenPropio = useSyncExternalStore(sinSuscripcion, fullscreenDisponible, sinDatosDelServidor);
 
   const mostrarBarra = useCallback(() => {
@@ -150,6 +152,11 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
     return () => document.removeEventListener("keydown", alPresionar);
   }, [router, corto.id, alternarPantallaCompleta, saltar]);
 
+  // Al final del corto aparece el panel de recomendados (se puede cerrar; vuelve si se retrocede y se llega otra vez).
+  const faltan = estado.total - estado.tiempo;
+  const cercaDelFinal = estado.tiempo > 0 && estado.total > 0 && faltan <= SEGUNDOS_FINAL;
+  const mostrarRecomendados = cercaDelFinal && !panelCerrado && recomendados.length > 0;
+
   // En pausa los controles se quedan a la vista.
   const controlesVisibles = barra || !estado.reproduciendo;
 
@@ -171,7 +178,7 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
                 video={video}
                 registrar={registrar}
                 alEstado={actualizar}
-                alTerminar={() => setTerminado(true)}
+                alTerminar={() => setPanelCerrado(false)}
               />
             )
           ) : (
@@ -179,7 +186,7 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
               corto={corto}
               registrar={registrar}
               alEstado={actualizar}
-              alTerminar={() => setTerminado(true)}
+              alTerminar={() => setPanelCerrado(false)}
             />
           )}
           {/* Capa sobre el video: clic = play/pausa, doble clic = pantalla completa (el iframe no recibe clics). */}
@@ -204,39 +211,6 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
               </span>
             )}
           </button>
-          <AnimatePresence>
-            {terminado && siguiente && (
-              <motion.div
-                className="absolute inset-0 z-10 grid place-items-center bg-black/80 p-6 text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <div>
-                  <p className="text-sm text-texto-suave">A continuación</p>
-                  <p className="titular mt-1 text-titulo text-texto">{siguiente.titulo}</p>
-                  <div className="mt-5 flex flex-wrap justify-center gap-3">
-                    <Link
-                      href={`/ver/${siguiente.id}`}
-                      data-nav
-                      autoFocus
-                      className="inline-flex min-h-12 items-center gap-2 rounded-md bg-rojo px-6 font-bold text-white hover:bg-rojo-hover"
-                    >
-                      <Icono nombre="play" className="size-5" /> {textos.siguiente}
-                    </Link>
-                    <button
-                      type="button"
-                      data-nav
-                      onClick={() => setTerminado(false)}
-                      className="inline-flex min-h-12 items-center rounded-md bg-texto/20 px-6 font-bold text-texto hover:bg-texto/30"
-                    >
-                      Cerrar
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
         {corto.demo && (
           <p className="absolute inset-x-0 top-20 hidden px-6 text-center text-sm text-texto-suave portrait:max-sm:block">
@@ -244,6 +218,60 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
           </p>
         )}
       </div>
+
+      <AnimatePresence>
+        {mostrarRecomendados && (
+          <motion.aside
+            aria-label={textos.recomendados}
+            className="absolute top-16 right-[var(--gutter)] bottom-28 z-20 flex w-[min(19rem,44%)] flex-col rounded-xl bg-black/75 p-3 shadow-2xl ring-1 shadow-black/60 ring-white/10 backdrop-blur-md sm:p-4"
+            initial={{ opacity: 0, x: 32 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 32 }}
+            transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
+          >
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="titular text-lg text-texto">{textos.recomendados}</h2>
+              <button
+                type="button"
+                data-nav
+                onClick={() => setPanelCerrado(true)}
+                aria-label={textos.cerrar}
+                title={textos.cerrar}
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-texto transition-colors hover:bg-white/10"
+              >
+                <Icono nombre="cerrar" className="size-5" />
+              </button>
+            </div>
+            <ul className="sin-barra -mx-1 flex-1 space-y-2 overflow-y-auto px-1 pb-1">
+              {recomendados.map((r, i) => (
+                <li key={r.id}>
+                  <Link
+                    href={`/ver/${r.id}`}
+                    // replace: el corto actual no se apila en el historial, así “Volver” sale al menú
+                    replace
+                    data-nav
+                    autoFocus={i === 0}
+                    className="group/rec flex items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-white/10 focus-visible:bg-white/10"
+                  >
+                    <span className="relative aspect-video w-28 shrink-0 overflow-hidden rounded-md bg-superficie ring-1 ring-white/10">
+                      <Portada src={r.imagenHorizontal} alt="" sizes="120px" />
+                      <span className="absolute inset-0 grid place-items-center bg-black/40 opacity-0 transition-opacity group-hover/rec:opacity-100 group-focus-visible/rec:opacity-100">
+                        <Icono nombre="play" className="size-6 text-white" />
+                      </span>
+                    </span>
+                    <span className="min-w-0">
+                      <span className="titular line-clamp-2 block text-base leading-tight text-texto">{r.titulo}</span>
+                      <span className="mt-0.5 block text-xs font-semibold tracking-[0.1em] text-texto-suave uppercase tabular-nums [font-stretch:100%]">
+                        {r.anio} · {formatoDuracion(r.duracion)}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </motion.aside>
+        )}
+      </AnimatePresence>
 
       {/* Arriba: solo volver (y la etiqueta DEMO) */}
       <div
@@ -311,25 +339,17 @@ export function Reproductor({ corto, siguiente }: { corto: Corto; siguiente?: Co
             />
           )}
 
-          <p className="titular min-w-0 flex-1 truncate px-3 text-center text-base text-texto max-sm:hidden">
-            {corto.titulo}
-            <span className="ml-2 text-sm font-medium text-texto-suave">
-              {corto.anio} · {formatoDuracion(corto.duracion)}
-            </span>
-          </p>
+          <div className="min-w-0 flex-1 px-3 text-center max-sm:hidden">
+            <p className="titular truncate text-xl leading-tight tracking-normal text-texto lg:text-2xl">
+              {corto.titulo}
+            </p>
+            <p className="truncate text-xs leading-tight font-semibold tracking-[0.12em] text-texto-suave uppercase tabular-nums [font-stretch:100%] lg:text-sm">
+              {corto.anio} <span aria-hidden="true" className="mx-1.5 text-texto-suave/60">•</span>
+              {formatoDuracion(corto.duracion)}
+            </p>
+          </div>
           <span className="flex-1 sm:hidden" />
 
-          {siguiente && (
-            <Link
-              href={`/ver/${siguiente.id}`}
-              data-nav
-              aria-label={`${textos.siguiente}: ${siguiente.titulo}`}
-              title={`${textos.siguiente}: ${siguiente.titulo}`}
-              className="inline-flex size-11 items-center justify-center rounded-full text-texto transition-colors hover:bg-white/10 sm:size-12"
-            >
-              <Icono nombre="siguiente" className="size-6 sm:size-7" />
-            </Link>
-          )}
           {fullscreenPropio && (
             <BotonControl
               nombre={pantallaCompleta ? "salirPantallaCompleta" : "pantallaCompleta"}

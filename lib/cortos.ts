@@ -126,6 +126,17 @@ export function crearCatalogo(lista: Corto[]) {
         .map((x) => x.c);
     },
 
+    /** Para el final del reproductor: relacionados y, si faltan, los más recientes. */
+    recomendados(corto: Corto, cantidad = 6): Corto[] {
+      const lista = this.relacionados(corto, cantidad);
+      const ids = new Set([corto.id, ...lista.map((c) => c.id)]);
+      for (const c of recientes) {
+        if (lista.length >= cantidad) break;
+        if (!ids.has(c.id)) lista.push(c);
+      }
+      return lista;
+    },
+
     /** El que sigue en “Recién agregados” (vuelve al principio al llegar al final). */
     siguiente(corto: Corto): Corto | undefined {
       if (recientes.length < 2) return undefined;
