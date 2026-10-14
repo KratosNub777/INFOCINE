@@ -142,6 +142,24 @@ body {
   width: calc((100% - var(--gap) * (var(--por-fila) * 1.75 - 1)) / (var(--por-fila) * 1.75));
 }
 
+/*
+ * Ranking (Top N): un ancho de portada vertical (W) + un número detrás.
+ * El número mide 0.85W por dígito y la portada lo tapa un 0.2W.
+ */
+.item-ranking {
+  --w: calc((100% - var(--gap) * (var(--por-fila) * 1.3 - 1)) / (var(--por-fila) * 1.3));
+  --total: calc(0.8 + 0.85 * var(--digitos));
+  flex: none;
+  width: calc(var(--w) * var(--total));
+  aspect-ratio: calc(var(--total) / 1.5);
+}
+.item-ranking-tarjeta {
+  width: calc(100% / var(--total));
+}
+.item-ranking-numero {
+  width: calc(100% * 0.85 * var(--digitos) / var(--total));
+}
+
 dialog {
   max-width: none;
   max-height: none;
