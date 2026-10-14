@@ -86,6 +86,7 @@ export function Fila({
           ref={carril}
           onScroll={medir}
           data-nav-fila
+          style={{ "--n": cortos.length } as CSSProperties}
           className="sin-barra flex snap-x snap-mandatory [&>[data-tarjeta]]:snap-start scroll-px-[var(--gutter)] gap-[var(--gap)] overflow-x-auto overscroll-x-contain px-[var(--gutter)] pt-3 pb-3"
         >
           {cortos.map((c, i) =>

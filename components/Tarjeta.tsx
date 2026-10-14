@@ -44,7 +44,7 @@ export function Tarjeta({
           data-nav
           onClick={() => abrirFicha(corto.id)}
           aria-label={`${corto.titulo}${corto.demo ? " (demo)" : ""}${esNuevo(corto) ? ", nuevo" : ""}${premiado ? ", premiado" : ""}. ${meta}. ${textos.masInformacion}`}
-          className={`relative block w-full overflow-hidden rounded-md bg-superficie shadow-lg shadow-black/40 ring-1 ring-white/5 ${vertical ? "aspect-[2/3]" : "aspect-video"}`}
+          className={`relative block w-full overflow-hidden rounded-md bg-superficie shadow-xl shadow-black/60 ring-1 ring-white/10 transition-shadow group-hover/tarjeta:ring-white/40 ${vertical ? "aspect-[2/3]" : "aspect-video"}`}
         >
           <Portada
             src={vertical ? corto.portada : corto.imagenHorizontal}
@@ -91,7 +91,7 @@ export function Tarjeta({
           } ${vertical ? "opacity-0 group-hover/tarjeta:opacity-100 group-has-[:focus-visible]/tarjeta:opacity-100" : ""} group-hover/tarjeta:-translate-y-[3.1rem] group-has-[:focus-visible]/tarjeta:-translate-y-[3.1rem]`}
           aria-hidden="true"
         >
-          <p className="titular line-clamp-2 text-[clamp(0.95rem,0.85rem+0.4vw,1.25rem)] leading-tight text-texto drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+          <p className="titular line-clamp-2 text-[clamp(1.05rem,0.9rem+0.6vw,1.85rem)] leading-tight text-texto drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
             {corto.titulo}
           </p>
         </div>

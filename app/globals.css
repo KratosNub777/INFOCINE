@@ -28,7 +28,7 @@
   --text-titulo--line-height: 1;
   --text-subtitulo: clamp(1.15rem, 1rem + 0.7vw, 1.6rem);
   --text-subtitulo--line-height: 1.15;
-  --text-fila: clamp(1.05rem, 0.95rem + 0.55vw, 1.55rem);
+  --text-fila: clamp(1.25rem, 1rem + 0.9vw, 2.1rem);
   --text-fila--line-height: 1.2;
   --text-cuerpo: clamp(0.95rem, 0.9rem + 0.25vw, 1.15rem);
   --text-cuerpo--line-height: 1.55;
@@ -61,38 +61,38 @@
 :root {
   --gutter: 1rem;
   --gap: 0.5rem;
-  --por-fila: 1.75;
+  --por-fila: 1.5;
   --alto-header: 4rem;
   color-scheme: dark;
 }
 @media (min-width: 480px) {
   :root {
-    --por-fila: 2.3;
+    --por-fila: 2;
   }
 }
 @media (min-width: 768px) {
   :root {
     --gutter: 2rem;
-    --por-fila: 3.3;
+    --por-fila: 2.7;
     --gap: 0.625rem;
   }
 }
 @media (min-width: 1024px) {
   :root {
     --gutter: 3rem;
-    --por-fila: 4.3;
+    --por-fila: 3.3;
     --alto-header: 4.5rem;
   }
 }
 @media (min-width: 1400px) {
   :root {
     --gutter: 4rem;
-    --por-fila: 5.3;
+    --por-fila: 3.9;
   }
 }
 @media (min-width: 1900px) {
   :root {
-    --por-fila: 6.3;
+    --por-fila: 4.6;
   }
 }
 
@@ -133,13 +133,19 @@ body {
   border-radius: 6px;
 }
 
+/*
+ * --n es la cantidad de cortos de la fila (la pone Fila). Si hay menos de los que caben,
+ * las tarjetas se agrandan para llenar el ancho, con un mínimo de 2,5 en pantallas anchas.
+ */
 .tarjeta-h {
+  --k: min(var(--por-fila), max(var(--n, 99), 2.5));
   flex: none;
-  width: calc((100% - var(--gap) * (var(--por-fila) - 1)) / var(--por-fila));
+  width: calc((100% - var(--gap) * (var(--k) - 1)) / var(--k));
 }
 .tarjeta-v {
+  --k: calc(min(var(--por-fila), max(var(--n, 99), 2.5)) * 1.75);
   flex: none;
-  width: calc((100% - var(--gap) * (var(--por-fila) * 1.75 - 1)) / (var(--por-fila) * 1.75));
+  width: calc((100% - var(--gap) * (var(--k) - 1)) / var(--k));
 }
 
 /*
@@ -147,7 +153,7 @@ body {
  * El número mide 0.85W por dígito y la portada lo tapa un 0.2W.
  */
 .item-ranking {
-  --w: calc((100% - var(--gap) * (var(--por-fila) * 1.3 - 1)) / (var(--por-fila) * 1.3));
+  --w: calc((100% - var(--gap) * (var(--por-fila) * 1.7 - 1)) / (var(--por-fila) * 1.7));
   --total: calc(0.8 + 0.85 * var(--digitos));
   flex: none;
   width: calc(var(--w) * var(--total));
