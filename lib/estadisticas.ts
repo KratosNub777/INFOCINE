@@ -44,17 +44,3 @@ export function registrarVista(id: string) {
     keepalive: true,
   }).catch(() => {});
 }
-
-export async function enviarMeGusta(id: string, sumar: boolean): Promise<number | null> {
-  try {
-    const r = await fetch("/api/estadisticas", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ id, accion: sumar ? "me-gusta" : "quitar-me-gusta" }),
-    });
-    const d = (await r.json()) as { meGusta?: number };
-    return typeof d.meGusta === "number" ? d.meGusta : null;
-  } catch {
-    return null;
-  }
-}
