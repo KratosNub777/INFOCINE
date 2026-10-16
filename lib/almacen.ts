@@ -97,6 +97,39 @@ export function useMeGusta() {
   };
 }
 
+/** Mi lista guardada en el navegador (solo si Supabase no está configurado). */
+export function useMiListaLocal() {
+  const ids = useSyncExternalStore(
+    suscribir,
+    () => instantanea(CLAVE_LISTA, LISTA_VACIA),
+    () => LISTA_VACIA,
+  );
+  return {
+    ids,
+    alternar: (id: string) => {
+      const actual = leer<string[]>(CLAVE_LISTA, []);
+      escribir(CLAVE_LISTA, actual.includes(id) ? actual.filter((x) => x !== id) : [id, ...actual]);
+    },
+  };
+}
+
+/** Lo que se guardó en este navegador antes de iniciar sesión (para fusionarlo con la cuenta). */
+export function leerGuardadosLocales() {
+  return { miLista: leer<string[]>(CLAVE_LISTA, []), meGusta: leer<string[]>(CLAVE_ME_GUSTA, []) };
+}
+
+export function borrarGuardadosLocales() {
+  try {
+    window.localStorage.removeItem(CLAVE_LISTA);
+    window.localStorage.removeItem(CLAVE_ME_GUSTA);
+  } catch {
+    /* sin acceso */
+  }
+  cache.delete(CLAVE_LISTA);
+  cache.delete(CLAVE_ME_GUSTA);
+  window.dispatchEvent(new Event(EVENTO));
+}
+
 export function useProgreso() {
   return useSyncExternalStore(
     suscribir,
