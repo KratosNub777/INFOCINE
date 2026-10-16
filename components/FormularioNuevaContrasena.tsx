@@ -27,7 +27,7 @@ export function FormularioNuevaContrasena() {
     return (
       <div role="status" className="mt-6 max-w-md rounded-2xl bg-superficie p-6 ring-1 ring-borde">
         <p className="titular text-2xl text-texto">¡Contraseña cambiada!</p>
-        <p className="mt-2 text-texto-suave">Ya podés usarla para iniciar sesión.</p>
+        <p className="mt-2 text-texto-suave">Ya podés usarla para ingresar.</p>
         <Link href="/" className={`${boton} mt-6`}>
           Ir a Infocine
         </Link>

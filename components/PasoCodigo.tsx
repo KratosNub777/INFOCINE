@@ -108,7 +108,7 @@ export function PasoCodigo({
       contrasenaRef.current?.focus();
       return;
     }
-    terminar("Listo: cambiaste tu contraseña y ya iniciaste sesión.");
+    terminar("Listo: cambiaste tu contraseña y ya ingresaste.");
   }
 
   const idCodigoError = `${ids}-codigo-error`;

@@ -29,7 +29,7 @@ type Props = {
 };
 
 const titulos: Record<ModoIngreso, string> = {
-  ingresar: "Iniciá sesión",
+  ingresar: "Ingresá",
   registrarse: "Creá tu cuenta",
   recuperar: "Recuperá tu contraseña",
 };
@@ -408,7 +408,7 @@ function Contenido({
                     transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
                   />
                 )}
-                <span className="relative">{m === "ingresar" ? "Iniciar sesión" : "Crear cuenta"}</span>
+                <span className="relative">{m === "ingresar" ? "Ingresar" : "Crear cuenta"}</span>
               </button>
             ))}
           </div>
@@ -521,7 +521,7 @@ function Contenido({
           {enviando === "correo"
             ? "Un momento…"
             : modo === "ingresar"
-              ? "Iniciar sesión"
+              ? "Ingresar"
               : modo === "registrarse"
                 ? "Crear cuenta"
                 : "Enviarme el enlace"}
@@ -534,7 +534,7 @@ function Contenido({
           onClick={() => irA("ingresar")}
           className="mt-5 text-sm font-semibold text-dorado hover:underline"
         >
-          Volver a iniciar sesión
+          Volver a ingresar
         </button>
       )}
       {modo === "registrarse" && (
