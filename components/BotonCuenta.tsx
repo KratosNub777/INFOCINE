@@ -97,33 +97,57 @@ export function BotonCuenta() {
         ref={confirmacion}
         aria-labelledby="confirmar-salir-titulo"
         aria-describedby="confirmar-salir-texto"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) e.currentTarget.close();
-        }}
-        className="m-auto w-[min(24rem,calc(100vw-2*var(--gutter)))] rounded-xl bg-superficie p-6 text-texto shadow-2xl shadow-black ring-1 ring-borde backdrop:bg-black/75"
+        className="fixed inset-0 m-0 h-full w-full"
       >
-        <h2 id="confirmar-salir-titulo" className="text-lg font-bold">
-          ¿Cerrar sesión?
-        </h2>
-        <p id="confirmar-salir-texto" className="mt-2 text-sm text-texto-suave">
-          ¿Estás seguro de que querés cerrar sesión?
-        </p>
-        <form method="dialog" className="mt-6 flex justify-end gap-3">
-          <button
-            type="submit"
-            autoFocus
-            className="min-h-11 rounded-md px-4 font-semibold ring-1 ring-texto/30 transition-colors hover:bg-white/10"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            onClick={() => void salir()}
-            className="min-h-11 rounded-md bg-rojo px-4 font-semibold text-white transition-opacity hover:opacity-90"
-          >
-            Cerrar sesión
-          </button>
-        </form>
+        <div
+          className="grid h-full w-full place-items-center bg-black/70 px-[var(--gutter)] backdrop-blur-sm transition-opacity duration-200 starting:opacity-0"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) confirmacion.current?.close();
+          }}
+        >
+          <div className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-superficie px-6 pt-8 pb-6 text-center text-texto shadow-2xl shadow-black ring-1 ring-white/10 transition-[opacity,translate,scale] duration-300 ease-out motion-reduce:transition-none starting:translate-y-4 starting:scale-95 starting:opacity-0">
+            {/* Resplandor rojo detrás del icono */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 -top-24 mx-auto size-48 rounded-full bg-rojo/25 blur-3xl"
+            />
+            <span
+              aria-hidden="true"
+              className="relative mx-auto grid size-14 place-items-center rounded-full bg-rojo/15 text-rojo ring-1 ring-rojo/40"
+            >
+              <Icono nombre="salir" className="size-7" />
+            </span>
+            <h2 id="confirmar-salir-titulo" className="relative mt-5 text-xl font-bold">
+              ¿Cerrar sesión?
+            </h2>
+            <p id="confirmar-salir-texto" className="relative mt-2 text-sm leading-relaxed text-texto-suave">
+              ¿Estás seguro de que querés cerrar sesión
+              {usuario.email ? (
+                <>
+                  {" "}
+                  de <span className="font-semibold break-all text-texto">{usuario.email}</span>
+                </>
+              ) : null}
+              ? Tu lista te va a estar esperando cuando vuelvas.
+            </p>
+            <form method="dialog" className="relative mt-7 grid grid-cols-2 gap-3">
+              <button
+                type="submit"
+                autoFocus
+                className="min-h-11 rounded-lg bg-white/5 px-4 font-semibold ring-1 ring-white/15 transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-texto"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                onClick={() => void salir()}
+                className="min-h-11 rounded-lg bg-rojo px-4 font-semibold text-white shadow-lg shadow-rojo/30 transition-[filter,translate] hover:brightness-110 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-texto"
+              >
+                Cerrar sesión
+              </button>
+            </form>
+          </div>
+        </div>
       </dialog>
     </>
   );
