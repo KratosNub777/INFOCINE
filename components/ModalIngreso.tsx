@@ -402,7 +402,15 @@ function Contenido({
       )}
       {modo === "registrarse" && (
         <p className="mt-4 text-xs text-texto-suave">
-          Solo usamos tu correo para tu cuenta: guardar Mi lista y tus “me gusta”.
+          Solo usamos tu correo para tu cuenta: guardar Mi lista y tus “me gusta”. Al crearla aceptás las{" "}
+          <a href="/terminos" target="_blank" className="font-semibold text-dorado hover:underline">
+            condiciones del servicio
+          </a>{" "}
+          y la{" "}
+          <a href="/privacidad" target="_blank" className="font-semibold text-dorado hover:underline">
+            política de privacidad
+          </a>
+          .
         </p>
       )}
     </>
