@@ -1,8 +1,10 @@
 "use client";
 
 /**
- * “Mi lista” y “Seguir viendo” se guardan solo en este navegador
- * (localStorage). No hay cuentas ni se envía nada a ningún servidor.
+ * “Seguir viendo” se guarda solo en este navegador (localStorage).
+ * “Mi lista” y los “me gusta” viven en la cuenta (components/ContextoCuenta.tsx);
+ * acá quedan los que se guardaron en el navegador antes de tener cuenta
+ * (se fusionan al iniciar sesión) y la lista local para cuando Supabase no está activo.
  */
 import { useSyncExternalStore } from "react";
 
@@ -64,38 +66,6 @@ function suscribir(aviso: () => void) {
 
 const LISTA_VACIA: string[] = [];
 const PROGRESO_VACIO: MapaProgreso = {};
-
-export function useMiLista() {
-  const ids = useSyncExternalStore(
-    suscribir,
-    () => instantanea(CLAVE_LISTA, LISTA_VACIA),
-    () => LISTA_VACIA,
-  );
-  return {
-    ids,
-    tiene: (id: string) => ids.includes(id),
-    alternar: (id: string) => {
-      const actual = leer<string[]>(CLAVE_LISTA, []);
-      escribir(CLAVE_LISTA, actual.includes(id) ? actual.filter((x) => x !== id) : [id, ...actual]);
-    },
-  };
-}
-
-/** Cortos a los que este navegador ya les dio “me gusta”. */
-export function useMeGusta() {
-  const ids = useSyncExternalStore(
-    suscribir,
-    () => instantanea(CLAVE_ME_GUSTA, LISTA_VACIA),
-    () => LISTA_VACIA,
-  );
-  return {
-    tiene: (id: string) => ids.includes(id),
-    marcar: (id: string, si: boolean) => {
-      const actual = leer<string[]>(CLAVE_ME_GUSTA, []).filter((x) => x !== id);
-      escribir(CLAVE_ME_GUSTA, si ? [id, ...actual] : actual);
-    },
-  };
-}
 
 /** Mi lista guardada en el navegador (solo si Supabase no está configurado). */
 export function useMiListaLocal() {
