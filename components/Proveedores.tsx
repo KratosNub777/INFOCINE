@@ -6,6 +6,7 @@ import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, u
 import { FichaModal } from "./FichaModal";
 import { Buscador } from "./Buscador";
 import { ProveedorCatalogo } from "./ContextoCatalogo";
+import { ProveedorCuenta } from "./ContextoCuenta";
 import type { Corto } from "@/lib/cortos";
 
 type Interfaz = {
@@ -53,14 +54,16 @@ export function Proveedores({ cortos, children }: { cortos: Corto[]; children: R
   return (
     <MotionConfig reducedMotion="user">
       <ProveedorCatalogo cortos={cortos}>
-        <Contexto.Provider value={valor}>
-          {children}
-          <FichaModal />
-          <Buscador />
-          <Suspense>
-            <CerrarAlNavegar alNavegar={cerrarTodo} />
-          </Suspense>
-        </Contexto.Provider>
+        <ProveedorCuenta>
+          <Contexto.Provider value={valor}>
+            {children}
+            <FichaModal />
+            <Buscador />
+            <Suspense>
+              <CerrarAlNavegar alNavegar={cerrarTodo} />
+            </Suspense>
+          </Contexto.Provider>
+        </ProveedorCuenta>
       </ProveedorCatalogo>
     </MotionConfig>
   );
