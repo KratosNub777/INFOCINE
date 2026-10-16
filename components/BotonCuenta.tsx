@@ -9,6 +9,7 @@ import { Icono } from "./Icono";
 export function BotonCuenta() {
   const { estado, usuario, abrirIngreso, salir } = useCuenta();
   const menu = useRef<HTMLDivElement>(null);
+  const confirmacion = useRef<HTMLDialogElement>(null);
 
   if (estado === "desactivado") return null;
 
@@ -82,7 +83,7 @@ export function BotonCuenta() {
               type="button"
               onClick={() => {
                 cerrar();
-                void salir();
+                confirmacion.current?.showModal();
               }}
               className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 font-medium transition-colors hover:bg-superficie-alta"
             >
@@ -91,6 +92,39 @@ export function BotonCuenta() {
           </li>
         </ul>
       </div>
+      {/* Confirmación antes de cerrar sesión (<dialog> nativo: Escape cancela). */}
+      <dialog
+        ref={confirmacion}
+        aria-labelledby="confirmar-salir-titulo"
+        aria-describedby="confirmar-salir-texto"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) e.currentTarget.close();
+        }}
+        className="m-auto w-[min(24rem,calc(100vw-2*var(--gutter)))] rounded-xl bg-superficie p-6 text-texto shadow-2xl shadow-black ring-1 ring-borde backdrop:bg-black/75"
+      >
+        <h2 id="confirmar-salir-titulo" className="text-lg font-bold">
+          ¿Cerrar sesión?
+        </h2>
+        <p id="confirmar-salir-texto" className="mt-2 text-sm text-texto-suave">
+          ¿Estás seguro de que querés cerrar sesión?
+        </p>
+        <form method="dialog" className="mt-6 flex justify-end gap-3">
+          <button
+            type="submit"
+            autoFocus
+            className="min-h-11 rounded-md px-4 font-semibold ring-1 ring-texto/30 transition-colors hover:bg-white/10"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            onClick={() => void salir()}
+            className="min-h-11 rounded-md bg-rojo px-4 font-semibold text-white transition-opacity hover:opacity-90"
+          >
+            Cerrar sesión
+          </button>
+        </form>
+      </dialog>
     </>
   );
 }
