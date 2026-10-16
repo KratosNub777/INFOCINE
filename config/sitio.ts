@@ -56,6 +56,10 @@ export const sitio = {
     "Infocine es la plataforma de cortometrajes hechos por estudiantes del Colegio Técnico Nacional de Asunción, Paraguay. Mirá dramas, comedias, documentales y animaciones creados en clase.",
   lema: "El cine que se hace en el Técnico",
   aviso: "Los cortometrajes pertenecen a sus autores, estudiantes del Colegio Técnico Nacional.",
+  /** Correo de contacto que aparece en Privacidad y Términos (pedidos de borrado, dudas). */
+  contacto: "facundovera0702@gmail.com",
+  /** Cambiá esta fecha cada vez que modifiques /privacidad o /terminos. */
+  legalesActualizados: "16 de octubre de 2026",
   /** Cuántos cortos (los más recientes) llevan la etiqueta “Nuevo”. */
   cantidadNuevos: 3,
   /** Segundos entre cada destacado del hero. */

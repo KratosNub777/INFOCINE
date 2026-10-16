@@ -26,6 +26,9 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Todo menos la página de acceso, archivos internos, el escudo y robots.
-  matcher: ["/((?!acceso|api/acceso|_next/static|_next/image|logo/|icon|robots\\.txt|manifest\\.webmanifest).*)"],
+  // Todo menos la página de acceso, archivos internos, el escudo, robots y las páginas legales
+  // (Google las revisa para “Continuar con Google” aunque el sitio pida código).
+  matcher: [
+    "/((?!acceso|api/acceso|privacidad|terminos|_next/static|_next/image|logo/|icon|robots\\.txt|manifest\\.webmanifest).*)",
+  ],
 };
