@@ -3,9 +3,11 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useSearchParams } from "next/navigation";
 import { generos, textos, type Genero } from "@/config/sitio";
-import { useMiLista } from "@/lib/almacen";
 import { Tarjeta } from "./Tarjeta";
 import { useCatalogo } from "./ContextoCatalogo";
+import { useCuenta } from "./ContextoCuenta";
+import { EsqueletoGrilla } from "./Esqueletos";
+import { Icono } from "./Icono";
 
 type Filtros = { genero: string; anio: string };
 
@@ -131,8 +133,31 @@ const chip = (activo: boolean) =>
 /** Grilla de “Mi lista” (página dedicada). */
 export function GrillaMiLista() {
   const { porId } = useCatalogo();
-  const { ids } = useMiLista();
+  const { estado, miLista: ids, abrirIngreso } = useCuenta();
   const cortos = ids.map(porId).filter((c): c is NonNullable<typeof c> => Boolean(c));
+
+  if (estado === "cargando") return <EsqueletoGrilla cantidad={4} />;
+  if (estado === "anonimo") {
+    return (
+      <div className="mt-6 flex max-w-xl flex-col items-start gap-5 rounded-2xl bg-superficie/70 p-6 ring-1 ring-borde sm:p-8">
+        <span className="grid size-14 place-items-center rounded-full bg-azul text-texto ring-1 ring-white/10">
+          <Icono nombre="lista" className="size-7" />
+        </span>
+        <div>
+          <h2 className="titular text-2xl text-texto">Guardá tus cortos favoritos</h2>
+          <p className="mt-2 text-cuerpo text-texto-suave">{textos.miListaSinSesion}</p>
+        </div>
+        <button
+          type="button"
+          data-nav
+          onClick={() => abrirIngreso()}
+          className="inline-flex min-h-12 items-center gap-2 rounded-md bg-rojo px-6 font-bold text-white transition-[background-color,transform] hover:bg-rojo-hover active:scale-[0.97]"
+        >
+          <Icono nombre="usuario" className="size-5" /> Iniciar sesión
+        </button>
+      </div>
+    );
+  }
 
   if (!cortos.length) {
     return <p className="mt-6 max-w-xl text-cuerpo text-texto-suave">{textos.miListaVacia}</p>;
