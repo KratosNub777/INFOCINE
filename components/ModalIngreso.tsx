@@ -13,6 +13,7 @@ import {
 } from "@/lib/cuenta";
 import { clienteNavegador } from "@/lib/supabase/navegador";
 import { Icono } from "./Icono";
+import { PasoCodigo } from "./PasoCodigo";
 
 export type ModoIngreso = "ingresar" | "registrarse" | "recuperar";
 
@@ -20,6 +21,8 @@ type Props = {
   ingreso: { modo: ModoIngreso; accion?: AccionPendiente; aviso?: string } | null;
   cambiarModo: (modo: ModoIngreso) => void;
   cerrar: () => void;
+  /** Cierra con un aviso (por ejemplo, después de cambiar la contraseña). */
+  terminar: (mensaje: string) => void;
 };
 
 const titulos: Record<ModoIngreso, string> = {
@@ -39,7 +42,7 @@ function motivo(accion?: AccionPendiente) {
  * Ventana de inicio de sesión y registro (<dialog> nativo: atrapa el foco,
  * se cierra con Escape y devuelve el foco al botón que la abrió).
  */
-export function ModalIngreso({ ingreso, cambiarModo, cerrar }: Props) {
+export function ModalIngreso({ ingreso, cambiarModo, cerrar, terminar }: Props) {
   const dialogo = useRef<HTMLDialogElement>(null);
   const retorno = useRef<HTMLElement | null>(null);
   const abierto = Boolean(ingreso);
@@ -105,7 +108,7 @@ export function ModalIngreso({ ingreso, cambiarModo, cerrar }: Props) {
                 <Icono nombre="cerrar" className="size-6" />
               </button>
               {/* Se desmonta al cerrar: cada apertura empieza con el formulario limpio. */}
-              <Contenido ingreso={ingreso} cambiarModo={cambiarModo} />
+              <Contenido ingreso={ingreso} cambiarModo={cambiarModo} terminar={terminar} />
             </div>
           </motion.div>
         )}
@@ -117,9 +120,11 @@ export function ModalIngreso({ ingreso, cambiarModo, cerrar }: Props) {
 function Contenido({
   ingreso,
   cambiarModo,
+  terminar,
 }: {
   ingreso: NonNullable<Props["ingreso"]>;
   cambiarModo: (modo: ModoIngreso) => void;
+  terminar: (mensaje: string) => void;
 }) {
   const { modo, accion, aviso } = ingreso;
   const ids = useId();
@@ -177,7 +182,11 @@ function Contenido({
     if (modo === "ingresar") {
       const { error } = await auth.signInWithPassword({ email: correo, password: contrasena });
       // Si sale bien, ContextoCuenta detecta la sesión y cierra esta ventana.
-      if (error) setErrores({ general: mensajeDeError(error) });
+      if (error?.code === "email_not_confirmed") {
+        // Se registró pero nunca confirmó: le mandamos un código nuevo.
+        await auth.resend({ type: "signup", email: correo });
+        setListo("confirmar");
+      } else if (error) setErrores({ general: mensajeDeError(error) });
     } else if (modo === "registrarse") {
       const { data, error } = await auth.signUp({
         email: correo,
@@ -201,32 +210,16 @@ function Contenido({
 
   if (listo) {
     return (
-      <div role="status">
-        <h2 id="ingreso-titulo" className="titular pr-10 text-3xl text-texto">
-          Revisá tu correo
-        </h2>
-        <p id="ingreso-motivo" className="mt-3 text-texto-suave">
-          {listo === "confirmar" ? (
-            <>
-              Te mandamos un enlace a <strong className="text-texto">{email.trim()}</strong> para confirmar tu cuenta.
-              Al abrirlo vas a volver acá con la sesión iniciada{accion ? " y se va a guardar lo que elegiste" : ""}.
-            </>
-          ) : (
-            <>
-              Si hay una cuenta con <strong className="text-texto">{email.trim()}</strong>, te llegó un enlace para
-              elegir una contraseña nueva.
-            </>
-          )}
-        </p>
-        <p className="mt-3 text-sm text-texto-suave">Puede tardar un minuto. Mirá también en “Spam”.</p>
-        <button
-          type="button"
-          onClick={() => irA("ingresar")}
-          className="mt-6 text-sm font-semibold text-dorado hover:underline"
-        >
-          Volver a iniciar sesión
-        </button>
-      </div>
+      <PasoCodigo
+        tipo={listo === "confirmar" ? "registro" : "recuperar"}
+        email={email.trim().toLowerCase()}
+        accion={accion}
+        volver={() => {
+          setErrores({});
+          setListo(null);
+        }}
+        terminar={terminar}
+      />
     );
   }
 
