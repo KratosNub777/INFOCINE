@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { textos } from "@/config/sitio";
+import { sitio, textos } from "@/config/sitio";
 import {
   MINIMO_CONTRASENA,
   mensajeDeError,
@@ -12,8 +12,11 @@ import {
   type AccionPendiente,
 } from "@/lib/cuenta";
 import { clienteNavegador } from "@/lib/supabase/navegador";
-import { Icono } from "./Icono";
+import { useCatalogo } from "./ContextoCatalogo";
+import { Icono, type NombreIcono } from "./Icono";
+import { Logo } from "./Logo";
 import { PasoCodigo } from "./PasoCodigo";
+import { Portada } from "./Portada";
 
 export type ModoIngreso = "ingresar" | "registrarse" | "recuperar";
 
@@ -39,8 +42,9 @@ function motivo(accion?: AccionPendiente) {
 }
 
 /**
- * Ventana de inicio de sesión y registro (<dialog> nativo: atrapa el foco,
- * se cierra con Escape y devuelve el foco al botón que la abrió).
+ * Inicio de sesión y registro a pantalla completa, sobre un degradado animado
+ * (<dialog> nativo: atrapa el foco, se cierra con Escape y devuelve el foco
+ * al botón que la abrió).
  */
 export function ModalIngreso({ ingreso, cambiarModo, cerrar, terminar }: Props) {
   const dialogo = useRef<HTMLDialogElement>(null);
@@ -77,43 +81,183 @@ export function ModalIngreso({ ingreso, cambiarModo, cerrar, terminar }: Props) 
       <AnimatePresence onExitComplete={alTerminarSalida}>
         {ingreso && (
           <motion.div
-            key="fondo"
-            className="fixed inset-0 bg-black/75 backdrop-blur-sm"
+            key="pantalla"
+            className="sin-barra fixed inset-0 overflow-y-auto overscroll-contain"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            aria-hidden="true"
-          />
-        )}
-        {ingreso && (
-          <motion.div
-            key="panel"
-            className="fixed inset-0 flex items-end justify-center overflow-y-auto overscroll-contain sm:items-center sm:p-4"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ type: "spring", duration: 0.4, bounce: 0.1 }}
-            onClick={(e) => {
-              if (e.target === e.currentTarget) cerrar();
-            }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
           >
-            <div className="relative w-full max-w-md rounded-t-2xl bg-superficie p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl shadow-black ring-1 ring-white/10 sm:rounded-2xl sm:p-8">
-              <button
-                type="button"
-                onClick={cerrar}
-                aria-label={textos.cerrar}
-                className="absolute top-3 right-3 grid size-11 place-items-center rounded-full text-texto-suave transition-colors hover:bg-white/10 hover:text-texto"
+            <FondoDegradado />
+
+            <button
+              type="button"
+              onClick={cerrar}
+              aria-label={`${textos.cerrar}: seguir mirando sin cuenta`}
+              className="fixed top-[max(1rem,env(safe-area-inset-top))] right-4 z-10 inline-flex min-h-11 items-center gap-2 rounded-full bg-black/30 px-3 text-sm font-semibold text-texto ring-1 ring-white/20 backdrop-blur-md transition-colors hover:bg-black/50 sm:right-6 sm:px-4"
+            >
+              <span className="hidden sm:inline">Seguir mirando</span>
+              <Icono nombre="cerrar" className="size-5" />
+            </button>
+
+            <div className="relative mx-auto grid min-h-full w-full max-w-6xl items-center gap-6 px-4 pt-16 sm:gap-8 sm:pt-20 pb-[calc(2.5rem+env(safe-area-inset-bottom))] sm:px-8 lg:grid-cols-[1.1fr_minmax(0,28rem)] lg:gap-16 lg:py-16">
+              <Presentacion />
+              <motion.div
+                className="w-full justify-self-center lg:justify-self-end"
+                initial={{ opacity: 0, y: 32, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 24, scale: 0.98 }}
+                transition={{ type: "spring", duration: 0.6, bounce: 0.18, delay: 0.08 }}
               >
-                <Icono nombre="cerrar" className="size-6" />
-              </button>
-              {/* Se desmonta al cerrar: cada apertura empieza con el formulario limpio. */}
-              <Contenido ingreso={ingreso} cambiarModo={cambiarModo} terminar={terminar} />
+                <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-3xl bg-fondo/60 p-6 shadow-[0_40px_120px_-30px_rgba(0,0,0,0.9)] ring-1 ring-white/15 backdrop-blur-2xl sm:p-9">
+                  {/* Brillo sutil en el borde superior de la tarjeta */}
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent"
+                  />
+                  {/* Se desmonta al cerrar: cada apertura empieza con el formulario limpio. */}
+                  <Contenido ingreso={ingreso} cambiarModo={cambiarModo} terminar={terminar} />
+                </div>
+              </motion.div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </dialog>
+  );
+}
+
+/* ───────────── Fondo: degradado con manchas de luz que flotan ───────────── */
+
+const manchas = [
+  {
+    // Rojo del escudo, arriba a la izquierda
+    clase: "-top-[25%] -left-[20%] size-[75vmax]",
+    color: "color-mix(in oklab, var(--c-rojo) 70%, transparent)",
+    x: ["0%", "14%", "-4%", "0%"],
+    y: ["0%", "10%", "18%", "0%"],
+    duracion: 24,
+  },
+  {
+    // Azul marino, abajo a la derecha
+    clase: "-right-[25%] -bottom-[30%] size-[85vmax]",
+    color: "color-mix(in oklab, var(--c-azul) 95%, white 5%)",
+    x: ["0%", "-12%", "6%", "0%"],
+    y: ["0%", "-14%", "-4%", "0%"],
+    duracion: 28,
+  },
+  {
+    // Violeta (mezcla de rojo y azul), cruza por el medio
+    clase: "top-[20%] left-[25%] size-[55vmax]",
+    color: "color-mix(in oklab, color-mix(in oklab, var(--c-rojo) 45%, var(--c-azul)) 80%, transparent)",
+    x: ["0%", "-18%", "10%", "0%"],
+    y: ["0%", "12%", "-10%", "0%"],
+    duracion: 32,
+  },
+  {
+    // Destello dorado, chico y suave
+    clase: "top-[5%] right-[10%] size-[30vmax] opacity-60",
+    color: "color-mix(in oklab, var(--c-dorado) 55%, transparent)",
+    x: ["0%", "-20%", "-6%", "0%"],
+    y: ["0%", "16%", "30%", "0%"],
+    duracion: 20,
+  },
+];
+
+// Grano de película (SVG con ruido), para que el degradado no se vea plano.
+const GRANO =
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>\")";
+
+function FondoDegradado() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden bg-fondo">
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(140deg, var(--c-azulOscuro) 0%, var(--c-fondo) 50%, #1c0b16 100%)",
+        }}
+      />
+      {manchas.map((m, i) => (
+        <motion.div
+          key={i}
+          className={`absolute rounded-full will-change-transform ${m.clase}`}
+          style={{ background: `radial-gradient(circle, ${m.color} 0%, transparent 65%)` }}
+          animate={{ x: m.x, y: m.y }}
+          transition={{ duration: m.duracion, repeat: Infinity, ease: "easeInOut" }}
+        />
+      ))}
+      <div className="absolute inset-0 opacity-[0.08] mix-blend-overlay" style={{ backgroundImage: GRANO }} />
+      {/* Viñeta: oscurece los bordes como en una sala de cine */}
+      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_40%,transparent_45%,rgba(0,0,0,0.6)_100%)]" />
+    </div>
+  );
+}
+
+/* ───────────── Lado izquierdo: marca, beneficios y portadas ───────────── */
+
+const beneficios: { icono: NombreIcono; texto: string }[] = [
+  { icono: "corazon", texto: "Dale “Me gusta” a tus cortos favoritos" },
+  { icono: "lista", texto: "Armá Mi lista para ver después" },
+  { icono: "usuario", texto: "Tu cuenta en todos tus dispositivos" },
+];
+
+const giros = ["-rotate-[9deg] translate-y-4", "-rotate-3", "rotate-3 -translate-y-2", "rotate-[9deg] translate-y-3"];
+
+function Presentacion() {
+  const { recientes } = useCatalogo();
+  const portadas = recientes.slice(0, 4);
+  const entrada = (i: number) => ({
+    initial: { opacity: 0, y: 18 },
+    animate: { opacity: 1, y: 0 },
+    transition: { type: "spring" as const, duration: 0.6, bounce: 0.15, delay: 0.12 + i * 0.07 },
+  });
+
+  return (
+    <div className="text-center lg:text-left">
+      <motion.div {...entrada(0)}>
+        <Logo tamano="lg" />
+      </motion.div>
+      <motion.p
+        {...entrada(1)}
+        className="titular mx-auto mt-3 max-w-md text-[clamp(1.8rem,1.3rem+2.6vw,3.8rem)] sm:mt-4 leading-[0.95] text-balance text-texto lg:mx-0"
+      >
+        Tu butaca te está esperando.
+      </motion.p>
+      <motion.p {...entrada(2)} className="mx-auto mt-3 hidden max-w-md text-texto-suave sm:block lg:mx-0">
+        {sitio.lema}. Mirar es libre; con tu cuenta guardás lo que más te gusta.
+      </motion.p>
+
+      <ul className="mt-8 hidden space-y-3 lg:block">
+        {beneficios.map((b, i) => (
+          <motion.li key={b.texto} {...entrada(3 + i)} className="flex items-center gap-3 text-texto">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white/10 ring-1 ring-white/15 backdrop-blur">
+              <Icono nombre={b.icono} className="size-5" />
+            </span>
+            {b.texto}
+          </motion.li>
+        ))}
+      </ul>
+
+      {portadas.length > 0 && (
+        <div className="mt-12 hidden items-end pl-4 lg:flex" aria-hidden="true">
+          {portadas.map((c, i) => (
+            <motion.div
+              key={c.id}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", duration: 0.8, bounce: 0.2, delay: 0.3 + i * 0.08 }}
+              className="-ml-4 first:ml-0"
+            >
+              <div
+                className={`relative aspect-[2/3] w-28 overflow-hidden rounded-xl shadow-2xl shadow-black/70 ring-1 ring-white/20 transition-transform duration-500 hover:-translate-y-2 xl:w-32 ${giros[i]}`}
+              >
+                <Portada src={c.portada} alt="" sizes="8rem" />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -231,7 +375,7 @@ function Contenido({
 
   return (
     <>
-      <h2 id="ingreso-titulo" className="titular pr-10 text-3xl text-texto">
+      <h2 id="ingreso-titulo" className="titular text-4xl text-texto">
         {titulos[modo]}
       </h2>
       <p id="ingreso-motivo" className="mt-2 text-sm text-texto-suave">
