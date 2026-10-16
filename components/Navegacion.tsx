@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { generos, navegacion, textos } from "@/config/sitio";
+import { BotonCuenta } from "./BotonCuenta";
 import { useCatalogo } from "./ContextoCatalogo";
 import { useInterfaz } from "./Proveedores";
 import { Icono, type NombreIcono } from "./Icono";
@@ -52,6 +53,7 @@ export function Header({ marca }: { marca: ReactNode }) {
             <Icono nombre="buscar" className="size-6" />
           </button>
           <MenuFiltros />
+          <BotonCuenta />
         </div>
       </div>
     </header>
