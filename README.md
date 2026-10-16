@@ -123,18 +123,21 @@ público, borrá la variable y hacé **Redeploy** otra vez. Para probarlo en tu 
 - Ficha en ventana modal y como página propia (`/corto/<id>`), con ficha técnica, equipo y relacionados.
 - Reproductor (`/ver/<id>`) con YouTube, volver y siguiente corto; recuerda dónde quedaste.
 - Buscador en vivo (lupa o tecla `/`) por título, año, género o integrante.
-- Catálogo con filtros (`/cortometrajes`), página por año y Mi lista (guardada en el navegador).
+- Catálogo con filtros (`/cortometrajes`), página por año y Mi lista (en la cuenta si activaste la
+  fase 2; si no, guardada en el navegador).
 - Navegación con teclado y control remoto: flechas para moverse, Enter para elegir, Escape para volver.
 - Accesibilidad AA, SEO en es-PY (metadata, Open Graph por corto, sitemap, robots) y respeta
   “reducir movimiento”.
 
-## 7. Fase 2: panel de profesores, vistas y “me gusta”
+## 7. Fase 2: panel de profesores, cuentas, vistas y “me gusta”
 
 Ya está construida y es **opcional**: mientras no la actives, todo sigue funcionando con
 `data/cortos.ts`. Al activarla (Supabase, plan gratuito):
 
 - los profesores cargan y editan cortos desde `/admin`, sin tocar código;
-- cada corto muestra sus vistas y un botón de “me gusta” (contadores anónimos).
+- cada corto muestra sus vistas y un botón de “me gusta”;
+- los espectadores pueden crear una cuenta (correo o Google) para dar “me gusta” y guardar
+  Mi lista. Mirar sigue sin pedir cuenta: solo se pide al tocar esos botones.
 
 Guía paso a paso para activarla y para el uso diario: [`docs/fase-2/`](docs/fase-2/README.md).
 
