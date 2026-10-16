@@ -94,10 +94,12 @@ export function ProveedorCuenta({ children }: { children: ReactNode }) {
         return;
       }
       if (nuevo.id !== usuarioRef.current?.id) {
-        // Recién entra: se cierra el modal y se carga su cuenta.
-        desdeModalRef.current = ingresoRef.current !== null;
+        // Recién entra: se cierra el modal y se carga su cuenta. Si está recuperando la
+        // contraseña, el modal sigue abierto hasta que guarde la nueva (lo cierra él).
+        const recuperando = ingresoRef.current?.modo === "recuperar";
+        desdeModalRef.current = ingresoRef.current !== null && !recuperando;
         setEstado("cargando");
-        setIngreso(null);
+        if (!recuperando) setIngreso(null);
       }
       usuarioRef.current = nuevo;
       setUsuario(nuevo);
@@ -304,6 +306,10 @@ export function ProveedorCuenta({ children }: { children: ReactNode }) {
           ingreso={ingreso}
           cambiarModo={(modo) => setIngreso((i) => (i ? { ...i, modo, aviso: undefined } : i))}
           cerrar={cerrarIngreso}
+          terminar={(mensaje) => {
+            setIngreso(null);
+            avisar(mensaje);
+          }}
         />
       )}
       <Aviso aviso={aviso} alTerminar={() => setAviso(null)} />
