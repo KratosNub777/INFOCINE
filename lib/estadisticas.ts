@@ -5,8 +5,11 @@ import { supabaseActivo } from "@/lib/supabase/config";
 
 export type Estadisticas = { vistas: number; meGusta: number };
 
-/** Vistas y “me gusta” de un corto (solo si la fase 2 está activa). */
-export function useEstadisticas(id: string) {
+/**
+ * Vistas y “me gusta” de un corto (solo si la fase 2 está activa).
+ * Cambiar `revision` vuelve a pedirlas (por ejemplo, después de un “me gusta”).
+ */
+export function useEstadisticas(id: string, revision = 0) {
   const [datos, setDatos] = useState<Estadisticas | null>(null);
   useEffect(() => {
     if (!supabaseActivo) return;
@@ -20,7 +23,7 @@ export function useEstadisticas(id: string) {
     return () => {
       vigente = false;
     };
-  }, [id]);
+  }, [id, revision]);
   return [datos, setDatos] as const;
 }
 
@@ -40,18 +43,4 @@ export function registrarVista(id: string) {
     body: JSON.stringify({ id, accion: "vista" }),
     keepalive: true,
   }).catch(() => {});
-}
-
-export async function enviarMeGusta(id: string, sumar: boolean): Promise<number | null> {
-  try {
-    const r = await fetch("/api/estadisticas", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ id, accion: sumar ? "me-gusta" : "quitar-me-gusta" }),
-    });
-    const d = (await r.json()) as { meGusta?: number };
-    return typeof d.meGusta === "number" ? d.meGusta : null;
-  } catch {
-    return null;
-  }
 }

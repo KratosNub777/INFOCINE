@@ -1,9 +1,10 @@
 "use client";
 
 import { textos } from "@/config/sitio";
-import { idsSeguirViendo, useMiLista, useProgreso } from "@/lib/almacen";
+import { idsSeguirViendo, useProgreso } from "@/lib/almacen";
 import type { Corto } from "@/lib/cortos";
 import { useCatalogo } from "./ContextoCatalogo";
+import { useMiLista } from "./ContextoCuenta";
 import { Fila } from "./Fila";
 
 const existe = (c: Corto | undefined): c is Corto => Boolean(c);

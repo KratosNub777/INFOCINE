@@ -1,26 +1,28 @@
 "use client";
 
-import { useMeGusta } from "@/lib/almacen";
-import { enviarMeGusta, useEstadisticas } from "@/lib/estadisticas";
+import { useEstadisticas } from "@/lib/estadisticas";
 import { supabaseActivo } from "@/lib/supabase/config";
+import { useMeGusta } from "./ContextoCuenta";
 import { Icono } from "./Icono";
 
 const numero = new Intl.NumberFormat("es-PY");
 
-/** “Me gusta” anónimo (fase 2). No se muestra si Supabase no está configurado. */
+/**
+ * “Me gusta” de la cuenta (fase 2). Sin sesión, abre el ingreso y el “me gusta”
+ * se guarda solo al entrar. No se muestra si Supabase no está configurado.
+ */
 export function BotonMeGusta({ id, titulo }: { id: string; titulo: string }) {
-  const { tiene, marcar } = useMeGusta();
-  const [stats, setStats] = useEstadisticas(id);
+  const { tiene, alternar: alternarCuenta, revision } = useMeGusta();
+  // Se vuelve a leer el total cada vez que se confirma un “me gusta”.
+  const [stats, setStats] = useEstadisticas(id, revision);
   if (!supabaseActivo) return null;
   const marcado = tiene(id);
 
-  async function alternar() {
-    const sumar = !marcado;
-    marcar(id, sumar);
-    // Se actualiza al instante y después se confirma con el servidor.
-    setStats((s) => (s ? { ...s, meGusta: Math.max(0, s.meGusta + (sumar ? 1 : -1)) } : s));
-    const total = await enviarMeGusta(id, sumar);
-    if (total !== null) setStats((s) => (s ? { ...s, meGusta: total } : { vistas: 0, meGusta: total }));
+  function alternar() {
+    if (!alternarCuenta(id)) return;
+    // Se actualiza al instante; el total real llega al confirmar.
+    const paso = marcado ? -1 : 1;
+    setStats((s) => (s ? { ...s, meGusta: Math.max(0, s.meGusta + paso) } : s));
   }
 
   return (

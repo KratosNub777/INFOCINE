@@ -5,7 +5,7 @@ import { ingresar, type EstadoIngreso } from "@/app/admin/acciones";
 import { Icono } from "@/components/Icono";
 import { ayuda, botonPrincipal, campo, etiqueta } from "./estilos";
 
-export function FormularioIngreso({ errorEnlace }: { errorEnlace: boolean }) {
+export function FormularioIngreso({ errorEnlace, sinPermiso }: { errorEnlace: boolean; sinPermiso: boolean }) {
   const [estado, accion, enviando] = useActionState<EstadoIngreso, FormData>(ingresar, {});
 
   if (estado.enviado) {
@@ -25,6 +25,12 @@ export function FormularioIngreso({ errorEnlace }: { errorEnlace: boolean }) {
       {errorEnlace && (
         <p role="alert" className="mb-4 text-sm font-semibold text-rojo-texto">
           El enlace venció o ya se usó. Pedí uno nuevo.
+        </p>
+      )}
+      {sinPermiso && (
+        <p role="alert" className="mb-4 text-sm font-semibold text-rojo-texto">
+          Tu cuenta de Infocine no tiene permiso de profesor/a. Entrá con tu e-mail de profesor/a o pedile a quien
+          administra Infocine que te agregue.
         </p>
       )}
       <label htmlFor="email" className={etiqueta}>

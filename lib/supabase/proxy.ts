@@ -7,7 +7,8 @@ const PUBLICAS = ["/admin/ingresar", "/admin/auth/"];
 
 /**
  * Renueva la sesión del profesor en cada pedido al panel y, si no hay
- * sesión, lo manda a /admin/ingresar.
+ * sesión, lo manda a /admin/ingresar. Los espectadores también tienen cuenta
+ * (mismo Supabase Auth), así que además se exige ser editor/a.
  */
 export async function sesionDelPanel(request: NextRequest) {
   let respuesta = NextResponse.next({ request });
@@ -23,12 +24,19 @@ export async function sesionDelPanel(request: NextRequest) {
     },
   });
 
-  const { data } = await supabase.auth.getUser();
   const ruta = request.nextUrl.pathname;
-  if (!data.user && !PUBLICAS.some((p) => ruta.startsWith(p))) {
+  if (PUBLICAS.some((p) => ruta.startsWith(p))) {
+    await supabase.auth.getUser();
+    return respuesta;
+  }
+
+  const { data } = await supabase.auth.getUser();
+  const esEditor = data.user ? Boolean((await supabase.rpc("es_editor")).data) : false;
+  if (!esEditor) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/ingresar";
     url.search = "";
+    if (data.user) url.searchParams.set("error", "permiso");
     const redireccion = NextResponse.redirect(url);
     for (const c of respuesta.cookies.getAll()) redireccion.cookies.set(c);
     return redireccion;

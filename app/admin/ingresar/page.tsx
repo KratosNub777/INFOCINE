@@ -11,7 +11,7 @@ export default function PaginaIngresar({ searchParams }: PageProps<"/admin/ingre
     <div className="mx-auto mt-6 max-w-md rounded-2xl bg-superficie p-8 ring-1 ring-borde">
       <h1 className="titular text-titulo text-texto">Ingresar</h1>
       <p className="mt-2 text-sm text-texto-suave">Para profesores que cargan y editan los cortometrajes.</p>
-      <Suspense fallback={<FormularioIngreso errorEnlace={false} />}>
+      <Suspense fallback={<FormularioIngreso errorEnlace={false} sinPermiso={false} />}>
         <Formulario searchParams={searchParams} />
       </Suspense>
     </div>
@@ -20,5 +20,5 @@ export default function PaginaIngresar({ searchParams }: PageProps<"/admin/ingre
 
 async function Formulario({ searchParams }: Pick<PageProps<"/admin/ingresar">, "searchParams">) {
   const { error } = await searchParams;
-  return <FormularioIngreso errorEnlace={error === "enlace"} />;
+  return <FormularioIngreso errorEnlace={error === "enlace"} sinPermiso={error === "permiso"} />;
 }

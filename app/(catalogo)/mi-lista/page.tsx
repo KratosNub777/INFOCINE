@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function PaginaMiLista() {
   return (
     <>
-      <Encabezado titulo="Mi lista">Tus cortos guardados en este dispositivo.</Encabezado>
+      <Encabezado titulo="Mi lista">Los cortos que guardaste para ver después.</Encabezado>
       <div className="px-[var(--gutter)]">
         <GrillaMiLista />
       </div>
