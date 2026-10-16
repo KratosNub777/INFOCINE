@@ -75,7 +75,7 @@ export function mensajeDeError(error: { code?: string; status?: number; message?
       return "Todavía no confirmaste tu correo. Buscá el enlace que te mandamos (mirá también en Spam).";
     case "user_already_exists":
     case "email_exists":
-      return "Ya hay una cuenta con ese correo. Iniciá sesión o recuperá tu contraseña.";
+      return "Ya hay una cuenta con ese correo. Ingresá o recuperá tu contraseña.";
     case "weak_password":
       return `Elegí una contraseña más segura (al menos ${MINIMO_CONTRASENA} caracteres, con letras y números).`;
     case "same_password":
@@ -93,7 +93,7 @@ export function mensajeDeError(error: { code?: string; status?: number; message?
     case "session_expired":
     case "session_not_found":
     case "refresh_token_not_found":
-      return "Tu sesión venció. Volvé a iniciar sesión.";
+      return "Tu sesión venció. Volvé a ingresar.";
   }
   if (error.status === 429) return "Hiciste muchos intentos seguidos. Esperá un minuto y probá de nuevo.";
   if (error.message?.toLowerCase().includes("fetch")) return "No hay conexión. Revisá tu internet y probá de nuevo.";

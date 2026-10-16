@@ -153,7 +153,7 @@ export function GrillaMiLista() {
           onClick={() => abrirIngreso()}
           className="inline-flex min-h-12 items-center gap-2 rounded-md bg-rojo px-6 font-bold text-white transition-[background-color,transform] hover:bg-rojo-hover active:scale-[0.97]"
         >
-          <Icono nombre="usuario" className="size-5" /> Iniciar sesión
+          <Icono nombre="usuario" className="size-5" /> Ingresar
         </button>
       </div>
     );

@@ -5,7 +5,7 @@ import { useRef } from "react";
 import { useCuenta } from "./ContextoCuenta";
 import { Icono } from "./Icono";
 
-/** Cabecera: “Iniciar sesión” o el avatar con su menú (Mi lista, Cerrar sesión). */
+/** Cabecera: “Ingresar” o el avatar con su menú (Mi lista, Cerrar sesión). */
 export function BotonCuenta() {
   const { estado, usuario, abrirIngreso, salir } = useCuenta();
   const menu = useRef<HTMLDivElement>(null);
@@ -20,11 +20,11 @@ export function BotonCuenta() {
         type="button"
         data-nav
         onClick={() => abrirIngreso()}
-        aria-label="Iniciar sesión"
+        aria-label="Ingresar"
         className="inline-flex size-11 items-center justify-center gap-2 rounded-full text-texto ring-1 ring-texto/30 transition-colors hover:bg-white/10 hover:ring-texto/60 sm:w-auto sm:rounded-md sm:px-4"
       >
         <Icono nombre="usuario" className="size-5" />
-        <span className="hidden text-sm font-semibold sm:inline">Iniciar sesión</span>
+        <span className="hidden text-sm font-semibold sm:inline">Ingresar</span>
       </button>
     );
   }

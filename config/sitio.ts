@@ -142,7 +142,7 @@ export const textos = {
   },
   miListaVacia: "Todavía no guardaste ningún corto. Tocá el botón “+” en cualquier corto para sumarlo acá.",
   miListaSinSesion:
-    "Iniciá sesión para armar tu lista y verla en cualquier dispositivo. Para mirar los cortos no necesitás cuenta.",
+    "Ingresá para armar tu lista y verla en cualquier dispositivo. Para mirar los cortos no necesitás cuenta.",
   demoAviso: "Este es un corto de ejemplo (DEMO) para mostrar cómo se ve la plataforma. No tiene video real.",
   acceso: {
     titulo: "Acceso para la comunidad del Técnico",
