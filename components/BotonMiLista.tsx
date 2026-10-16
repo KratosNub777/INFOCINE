@@ -1,7 +1,7 @@
 "use client";
 
 import { textos } from "@/config/sitio";
-import { useMiLista } from "@/lib/almacen";
+import { useMiLista } from "./ContextoCuenta";
 import { Icono } from "./Icono";
 
 export function BotonMiLista({
