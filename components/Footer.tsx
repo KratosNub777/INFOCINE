@@ -35,6 +35,14 @@ export function Footer() {
           Prohibida su descarga, copia o difusión con fines comerciales sin autorización de sus autores y del{" "}
           {sitio.colegio}. Los videos se reproducen desde YouTube.
         </p>
+        <p className="flex flex-wrap gap-x-4 gap-y-1">
+          <Link href="/privacidad" className="font-semibold hover:text-texto hover:underline">
+            Política de privacidad
+          </Link>
+          <Link href="/terminos" className="font-semibold hover:text-texto hover:underline">
+            Condiciones del servicio
+          </Link>
+        </p>
         <p>
           Créditos: realización de los cortometrajes a cargo de estudiantes y docentes del {sitio.colegio}. Plataforma
           Infocine hecha para la comunidad educativa.
