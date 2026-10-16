@@ -89,11 +89,16 @@ correos de la tabla `editores` entran a `/admin`** (lo controla `proxy.ts`); el 
    **Authentication → Sign In / Providers → Email → Minimum password length**.
 3. Con el SMTP de fábrica los correos de confirmación solo llegan a miembros de tu equipo de
    Supabase: configurá un SMTP propio (paso 2 de arriba) antes de abrir el registro.
-4. Opcional, plantillas en español en **Authentication → Emails**:
-   - **Confirm signup** — Asunto: `Confirmá tu cuenta de Infocine` · Cuerpo:
-     `<p>¡Hola! Tocá el enlace para confirmar tu cuenta:</p><p><a href="{{ .ConfirmationURL }}">Confirmar mi cuenta</a></p>`
-   - **Reset password** — Asunto: `Elegí una contraseña nueva` · Cuerpo:
-     `<p>Tocá el enlace para elegir una contraseña nueva:</p><p><a href="{{ .ConfirmationURL }}">Cambiar contraseña</a></p><p>Si no lo pediste, ignorá este correo.</p>`
+4. **Plantillas con código** (necesarias: si no, el correo trae un enlace y no un código) en **Authentication → Emails**:
+   - **Confirm signup** — Asunto: `Tu código para Infocine: {{ .Token }}` · Cuerpo:
+     `<p>¡Hola! Tu código para confirmar tu cuenta de Infocine es:</p><p style="font-size:28px;font-weight:bold;letter-spacing:6px">{{ .Token }}</p><p>Escribilo en la ventana de Infocine. Si no creaste una cuenta, ignorá este correo.</p>`
+   - **Reset password** — Asunto: `Tu código para cambiar la contraseña: {{ .Token }}` · Cuerpo:
+     `<p>Tu código para elegir una contraseña nueva en Infocine es:</p><p style="font-size:28px;font-weight:bold;letter-spacing:6px">{{ .Token }}</p><p>Si no lo pediste, ignorá este correo.</p>`
+
+   Infocine pide un **código** (no un enlace): la persona lo escribe en la misma ventana y no sale
+   de la página. Por eso las plantillas usan `{{ .Token }}` en lugar de `{{ .ConfirmationURL }}`.
+   La longitud y la duración del código se cambian en **Authentication → Sign In / Providers →
+   Email** (_Email OTP Length_ y _Email OTP Expiration_).
 
 ### Continuar con Google
 
